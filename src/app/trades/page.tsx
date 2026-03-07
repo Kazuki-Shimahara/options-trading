@@ -29,7 +29,7 @@ export default async function TradesPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-slate-100">売買履歴</h1>
+          <h1 className="text-2xl font-bold text-white">売買履歴</h1>
           <Link
             href="/trades/new"
             className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors"
@@ -42,14 +42,14 @@ export default async function TradesPage() {
         {trades.length > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <p className="text-xs text-slate-500 mb-1">累計損益</p>
+              <p className="text-xs text-slate-300 mb-1">累計損益</p>
               <p className={`text-xl font-bold tabular-nums ${totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {totalPnl >= 0 ? '+' : ''}{totalPnl.toLocaleString()}
                 <span className="text-sm font-normal text-slate-500 ml-1">円</span>
               </p>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <p className="text-xs text-slate-500 mb-1">勝率</p>
+              <p className="text-xs text-slate-300 mb-1">勝率</p>
               <p className="text-xl font-bold text-slate-100">
                 {winRate !== null ? `${winRate}%` : '—'}
                 {winRate !== null && (
@@ -58,7 +58,7 @@ export default async function TradesPage() {
               </p>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <p className="text-xs text-slate-500 mb-1">未決済</p>
+              <p className="text-xs text-slate-300 mb-1">未決済</p>
               <p className="text-xl font-bold text-amber-400">
                 {openCount}
                 <span className="text-sm font-normal text-slate-500 ml-1">ポジション</span>
@@ -99,16 +99,16 @@ export default async function TradesPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-200">
+                    <span className="text-sm font-medium text-white">
                       {trade.strike_price.toLocaleString()}円
                     </span>
-                    <span className="text-xs text-slate-600">×{trade.quantity}枚</span>
+                    <span className="text-xs text-slate-400">×{trade.quantity}枚</span>
                     {trade.iv_at_entry !== null && (
-                      <span className="text-xs text-slate-600">IV {trade.iv_at_entry}%</span>
+                      <span className="text-xs text-slate-400">IV {trade.iv_at_entry}%</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-slate-500">{trade.trade_date}</span>
+                    <span className="text-xs text-slate-300">{trade.trade_date}</span>
                     <span className={`text-xs px-1.5 py-0.5 rounded ${
                       trade.status === 'open'
                         ? 'text-amber-400 bg-amber-500/10'
@@ -128,7 +128,7 @@ export default async function TradesPage() {
                       {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toLocaleString()}円
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-600">@ {trade.entry_price}</span>
+                    <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
                   )}
                 </div>
 

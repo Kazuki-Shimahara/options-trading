@@ -11,13 +11,13 @@ export default function Nav() {
         <nav className="flex items-center gap-1">
           <Link
             href="/trades"
-            className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
           >
             履歴
           </Link>
           <Link
             href="/analytics"
-            className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
           >
             分析
           </Link>

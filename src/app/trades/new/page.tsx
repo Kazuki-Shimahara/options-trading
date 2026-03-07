@@ -9,7 +9,7 @@ import { calculatePnl } from '@/lib/trade'
 const inputClass =
   'w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-sm placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
 
-const labelClass = 'block text-xs font-medium text-slate-400 mb-1.5'
+const labelClass = 'block text-xs font-medium text-slate-200 mb-1.5'
 
 export default function NewTradePage() {
   const router = useRouter()
@@ -70,7 +70,7 @@ export default function NewTradePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section: 基本情報 */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest">基本情報</h2>
+            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">基本情報</h2>
 
             {/* CALL / PUT toggle */}
             <div>
@@ -145,7 +145,7 @@ export default function NewTradePage() {
 
           {/* Section: 価格 */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest">価格</h2>
+            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">価格</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>購入価格（プレミアム）*</label>
@@ -193,7 +193,7 @@ export default function NewTradePage() {
 
           {/* Section: メモ */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest">メモ</h2>
+            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">メモ</h2>
             <div>
               <label className={labelClass}>エントリー理由</label>
               <textarea

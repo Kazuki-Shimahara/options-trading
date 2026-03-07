@@ -92,7 +92,7 @@ export default async function TradeDetailPage({
 
           {trade.memo && (
             <div className="px-5 py-4 border-t border-slate-800 bg-slate-800/30">
-              <p className="text-xs text-slate-500 mb-2 uppercase tracking-widest">エントリー理由・メモ</p>
+              <p className="text-xs text-slate-300 mb-2 uppercase tracking-widest">エントリー理由・メモ</p>
               <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{trade.memo}</p>
             </div>
           )}
@@ -124,7 +124,7 @@ export default async function TradeDetailPage({
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-5 py-3.5">
-      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm text-slate-300">{label}</span>
       <span className="text-sm text-slate-200">{children}</span>
     </div>
   )

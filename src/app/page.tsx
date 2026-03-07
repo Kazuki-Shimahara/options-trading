@@ -10,11 +10,11 @@ export default function Home() {
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
             日経225オプション取引サポート
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-slate-100 tracking-tight mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-4">
             取引を記録し、<br className="sm:hidden" />
             <span className="text-blue-400">勝率を上げる</span>
           </h1>
-          <p className="text-slate-400 text-lg max-w-xl mx-auto">
+          <p className="text-slate-200 text-lg max-w-xl mx-auto">
             IV分析に基づくエントリー判断・売買履歴の記録・敗因の可視化で、トレードの質を高める
           </p>
         </div>
@@ -26,9 +26,9 @@ export default function Home() {
             className="group relative bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-slate-600 hover:bg-slate-800/80 transition-all duration-200"
           >
             <div className="text-2xl mb-3">📋</div>
-            <h2 className="text-base font-semibold text-slate-100 mb-1">売買履歴</h2>
-            <p className="text-sm text-slate-500">取引の記録・閲覧・分析</p>
-            <span className="absolute bottom-4 right-4 text-slate-600 group-hover:text-slate-400 transition-colors text-sm">→</span>
+            <h2 className="text-base font-semibold text-white mb-1">売買履歴</h2>
+            <p className="text-sm text-slate-300">取引の記録・閲覧・分析</p>
+            <span className="absolute bottom-4 right-4 text-slate-500 group-hover:text-slate-200 transition-colors text-sm">→</span>
           </Link>
 
           <Link
@@ -46,9 +46,9 @@ export default function Home() {
             className="group relative bg-slate-900 border border-slate-800 rounded-2xl p-6 hover:border-slate-600 hover:bg-slate-800/80 transition-all duration-200"
           >
             <div className="text-2xl mb-3">📊</div>
-            <h2 className="text-base font-semibold text-slate-100 mb-1">分析</h2>
-            <p className="text-sm text-slate-500">損益チャート・敗因分析</p>
-            <span className="absolute bottom-4 right-4 text-slate-600 group-hover:text-slate-400 transition-colors text-sm">→</span>
+            <h2 className="text-base font-semibold text-white mb-1">分析</h2>
+            <p className="text-sm text-slate-300">損益チャート・敗因分析</p>
+            <span className="absolute bottom-4 right-4 text-slate-500 group-hover:text-slate-200 transition-colors text-sm">→</span>
           </Link>
         </div>
 
@@ -60,8 +60,8 @@ export default function Home() {
             { label: '敗因分析', desc: '勝率の可視化' },
           ].map((f) => (
             <div key={f.label} className="py-4 border-t border-slate-800">
-              <p className="text-sm font-medium text-slate-300">{f.label}</p>
-              <p className="text-xs text-slate-600 mt-0.5">{f.desc}</p>
+              <p className="text-sm font-medium text-slate-100">{f.label}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{f.desc}</p>
             </div>
           ))}
         </div>
