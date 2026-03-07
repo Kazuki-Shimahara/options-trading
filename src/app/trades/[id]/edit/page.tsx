@@ -7,6 +7,11 @@ import { supabase } from '@/lib/supabase'
 import { calculatePnl } from '@/lib/trade'
 import type { Trade } from '@/types/database'
 
+const inputClass =
+  'w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-sm placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
+
+const labelClass = 'block text-xs font-medium text-slate-200 mb-1.5'
+
 export default function EditTradePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -16,6 +21,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tradeId, setTradeId] = useState<string | null>(null)
+  const [tradeType, setTradeType] = useState<'call' | 'put'>('call')
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -30,7 +36,9 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
             router.push('/trades')
             return
           }
-          setTrade(data as Trade)
+          const t = data as Trade
+          setTrade(t)
+          setTradeType(t.trade_type)
         })
     })
   }, [params, router])
@@ -57,7 +65,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
       .from('trades')
       .update({
         trade_date: data.get('trade_date') as string,
-        trade_type: data.get('trade_type') as 'call' | 'put',
+        trade_type: isSettle ? trade.trade_type : tradeType,
         strike_price: parseInt(data.get('strike_price') as string),
         expiry_date: data.get('expiry_date') as string,
         quantity,
@@ -83,124 +91,29 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
 
   if (!trade) {
     return (
-      <main className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
-        <p className="text-gray-400">読み込み中...</p>
+      <main className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 sm:p-8">
+    <main className="min-h-[calc(100vh-3.5rem)] px-4 py-8">
       <div className="max-w-xl mx-auto">
-        <Link href={`/trades/${tradeId}`} className="text-sm text-blue-600 hover:underline mb-1 block">
-          &larr; 取引詳細
+        <Link
+          href={`/trades/${tradeId}`}
+          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-300 mb-6 transition-colors"
+        >
+          ← 取引詳細
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        <h1 className="text-2xl font-bold text-slate-100 mb-8">
           {isSettle ? '決済を記録' : '取引を編集'}
         </h1>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          {!isSettle && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {isSettle ? (
             <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">取引日 *</label>
-                  <input
-                    name="trade_date"
-                    type="date"
-                    required
-                    defaultValue={trade.trade_date}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">種別 *</label>
-                  <select
-                    name="trade_type"
-                    required
-                    defaultValue={trade.trade_type}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="call">CALL</option>
-                    <option value="put">PUT</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">権利行使価格 *</label>
-                  <input
-                    name="strike_price"
-                    type="number"
-                    required
-                    defaultValue={trade.strike_price}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">限月（SQ日）*</label>
-                  <input
-                    name="expiry_date"
-                    type="date"
-                    required
-                    defaultValue={trade.expiry_date ?? ''}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">枚数 *</label>
-                  <input
-                    name="quantity"
-                    type="number"
-                    required
-                    min="1"
-                    defaultValue={trade.quantity}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">購入価格（プレミアム）*</label>
-                  <input
-                    name="entry_price"
-                    type="number"
-                    step="0.01"
-                    required
-                    defaultValue={trade.entry_price}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">IV（インプライドボラティリティ %）</label>
-                <input
-                  name="iv_at_entry"
-                  type="number"
-                  step="0.01"
-                  defaultValue={trade.iv_at_entry ?? ''}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">エントリー理由・メモ</label>
-                <textarea
-                  name="memo"
-                  rows={3}
-                  defaultValue={trade.memo ?? ''}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
-          )}
-
-          {isSettle && (
-            <>
-              {/* 決済モード: 編集不可フィールドはhiddenで送信 */}
+              {/* 決済モード: hidden fields */}
               <input type="hidden" name="trade_date" value={trade.trade_date} />
               <input type="hidden" name="trade_type" value={trade.trade_type} />
               <input type="hidden" name="strike_price" value={trade.strike_price} />
@@ -210,46 +123,129 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
               <input type="hidden" name="iv_at_entry" value={trade.iv_at_entry ?? ''} />
               <input type="hidden" name="memo" value={trade.memo ?? ''} />
 
-              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600 space-y-1">
-                <p><span className="font-medium">種別：</span>{trade.trade_type.toUpperCase()}</p>
-                <p><span className="font-medium">権利行使価格：</span>{trade.strike_price.toLocaleString()} 円</p>
-                <p><span className="font-medium">枚数：</span>{trade.quantity} 枚</p>
-                <p><span className="font-medium">購入価格：</span>{trade.entry_price} 円</p>
+              {/* 決済対象の確認表示 */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">決済対象</h2>
+                <div className="flex items-center gap-3 mb-3">
+                  <span className={`text-sm font-bold px-3 py-1 rounded-lg ${
+                    trade.trade_type === 'call'
+                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                      : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                  }`}>
+                    {trade.trade_type.toUpperCase()}
+                  </span>
+                  <span className="text-slate-300 font-semibold">{trade.strike_price.toLocaleString()}円</span>
+                  <span className="text-slate-500 text-sm">×{trade.quantity}枚</span>
+                </div>
+                <p className="text-sm text-slate-500">購入価格: <span className="text-slate-300 font-mono">{trade.entry_price}円</span></p>
+              </div>
+            </>
+          ) : (
+            /* 編集モード */
+            <>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">基本情報</h2>
+
+                <div>
+                  <label className={labelClass}>種別 *</label>
+                  <div className="flex gap-2">
+                    {(['call', 'put'] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTradeType(t)}
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                          tradeType === t
+                            ? t === 'call'
+                              ? 'bg-blue-600 text-white border border-blue-500'
+                              : 'bg-orange-600 text-white border border-orange-500'
+                            : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
+                        }`}
+                      >
+                        {t.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>取引日 *</label>
+                    <input name="trade_date" type="date" required defaultValue={trade.trade_date} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>限月（SQ日）*</label>
+                    <input name="expiry_date" type="date" required defaultValue={trade.expiry_date ?? ''} className={inputClass} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>権利行使価格 *</label>
+                    <input name="strike_price" type="number" required defaultValue={trade.strike_price} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>枚数 *</label>
+                    <input name="quantity" type="number" required min="1" defaultValue={trade.quantity} className={inputClass} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>購入価格 *</label>
+                    <input name="entry_price" type="number" step="0.01" required defaultValue={trade.entry_price} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>IV（%）</label>
+                    <input name="iv_at_entry" type="number" step="0.01" defaultValue={trade.iv_at_entry ?? ''} className={inputClass} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>エントリー理由・メモ</label>
+                  <textarea name="memo" rows={3} defaultValue={trade.memo ?? ''} className={`${inputClass} resize-none`} />
+                </div>
               </div>
             </>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">決済価格</label>
-              <input
-                name="exit_price"
-                type="number"
-                step="0.01"
-                defaultValue={trade.exit_price ?? ''}
-                placeholder="未決済の場合は空欄"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">決済日</label>
-              <input
-                name="exit_date"
-                type="date"
-                defaultValue={trade.exit_date ?? ''}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          {/* 決済情報（編集・決済共通） */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">決済情報</h2>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>決済価格</label>
+                <input
+                  name="exit_price"
+                  type="number"
+                  step="0.01"
+                  defaultValue={trade.exit_price ?? ''}
+                  placeholder="未決済は空欄"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>決済日</label>
+                <input
+                  name="exit_date"
+                  type="date"
+                  defaultValue={trade.exit_date ?? ''}
+                  className={inputClass}
+                />
+              </div>
             </div>
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</p>
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl">
+              {error}
+            </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
           >
             {loading ? '保存中...' : isSettle ? '決済を保存' : '変更を保存'}
           </button>

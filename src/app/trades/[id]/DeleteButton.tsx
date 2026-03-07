@@ -28,9 +28,9 @@ export default function DeleteButton({ tradeId }: { tradeId: string }) {
     <button
       onClick={handleDelete}
       disabled={loading}
-      className="flex-1 bg-white border border-red-300 text-red-600 py-2.5 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+      className="px-4 py-2.5 bg-slate-800 hover:bg-red-500/10 border border-slate-700 hover:border-red-500/30 text-slate-400 hover:text-red-400 text-sm font-medium rounded-xl transition-all disabled:opacity-50"
     >
-      {loading ? '削除中...' : '削除'}
+      {loading ? '...' : '削除'}
     </button>
   )
 }
