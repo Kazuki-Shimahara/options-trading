@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createTrade } from '@/app/actions/trades'
+import { calculateGreeks, type Greeks } from '@/lib/greeks'
+import type { BSInputs } from '@/lib/black-scholes'
 
 const inputClass =
   'w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-sm placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
@@ -15,6 +17,57 @@ export default function NewTradePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tradeType, setTradeType] = useState<'call' | 'put'>('call')
+
+  // Greeks計算用の入力状態
+  const [spotPrice, setSpotPrice] = useState<string>('')
+  const [strikePrice, setStrikePrice] = useState<string>('')
+  const [ivAtEntry, setIvAtEntry] = useState<string>('')
+  const [expiryDate, setExpiryDate] = useState<string>('')
+  const [greeks, setGreeks] = useState<Greeks | null>(null)
+
+  // Greeks自動計算
+  const computeGreeks = useCallback(() => {
+    const spot = parseFloat(spotPrice)
+    const strike = parseFloat(strikePrice)
+    const iv = parseFloat(ivAtEntry)
+
+    if (!spot || !strike || !iv || !expiryDate) {
+      setGreeks(null)
+      return
+    }
+
+    // 満期までの年数を計算
+    const now = new Date()
+    const expiry = new Date(expiryDate)
+    const diffMs = expiry.getTime() - now.getTime()
+    const timeToExpiry = diffMs / (1000 * 60 * 60 * 24 * 365)
+
+    if (timeToExpiry <= 0) {
+      setGreeks(null)
+      return
+    }
+
+    const inputs: BSInputs = {
+      spot,
+      strike,
+      timeToExpiry,
+      volatility: iv / 100, // %から小数に変換
+      riskFreeRate: 0.001,
+      dividendYield: 0.02,
+      optionType: tradeType,
+    }
+
+    try {
+      const result = calculateGreeks(inputs)
+      setGreeks(result)
+    } catch {
+      setGreeks(null)
+    }
+  }, [spotPrice, strikePrice, ivAtEntry, expiryDate, tradeType])
+
+  useEffect(() => {
+    computeGreeks()
+  }, [computeGreeks])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -38,6 +91,10 @@ export default function NewTradePage() {
       exit_date: exitDateRaw || null,
       iv_at_entry: data.get('iv_at_entry') ? parseFloat(data.get('iv_at_entry') as string) : null,
       memo: (data.get('memo') as string) || null,
+      entry_delta: greeks?.delta ?? null,
+      entry_gamma: greeks?.gamma ?? null,
+      entry_theta: greeks?.theta ?? null,
+      entry_vega: greeks?.vega ?? null,
     })
 
     if (!result.success) {
@@ -104,6 +161,8 @@ export default function NewTradePage() {
                   name="expiry_date"
                   type="date"
                   required
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -117,6 +176,8 @@ export default function NewTradePage() {
                   type="number"
                   required
                   placeholder="39000"
+                  value={strikePrice}
+                  onChange={(e) => setStrikePrice(e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -156,11 +217,25 @@ export default function NewTradePage() {
                   type="number"
                   step="0.01"
                   placeholder="18.5"
+                  value={ivAtEntry}
+                  onChange={(e) => setIvAtEntry(e.target.value)}
                   className={inputClass}
                 />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>先物価格（原資産）</label>
+                <input
+                  name="spot_price"
+                  type="number"
+                  step="0.01"
+                  placeholder="38500"
+                  value={spotPrice}
+                  onChange={(e) => setSpotPrice(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
               <div>
                 <label className={labelClass}>決済価格（任意）</label>
                 <input
@@ -171,6 +246,8 @@ export default function NewTradePage() {
                   className={inputClass}
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>決済日（任意）</label>
                 <input
@@ -181,6 +258,44 @@ export default function NewTradePage() {
               </div>
             </div>
           </div>
+
+          {/* Section: Greeks（自動計算） */}
+          {greeks && (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+              <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">
+                Greeks（BS Merton版・自動計算）
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
+                  <div className="text-xs text-slate-500 mb-1">Delta</div>
+                  <div className="text-lg font-mono font-semibold text-slate-100">
+                    {greeks.delta >= 0 ? '+' : ''}{greeks.delta.toFixed(4)}
+                  </div>
+                </div>
+                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
+                  <div className="text-xs text-slate-500 mb-1">Gamma</div>
+                  <div className="text-lg font-mono font-semibold text-slate-100">
+                    {greeks.gamma.toFixed(6)}
+                  </div>
+                </div>
+                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
+                  <div className="text-xs text-slate-500 mb-1">Theta</div>
+                  <div className="text-lg font-mono font-semibold text-slate-100">
+                    {greeks.theta >= 0 ? '+' : ''}{greeks.theta.toFixed(2)}
+                  </div>
+                </div>
+                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
+                  <div className="text-xs text-slate-500 mb-1">Vega</div>
+                  <div className="text-lg font-mono font-semibold text-slate-100">
+                    {greeks.vega.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-slate-600">
+                r=0.1%, q=2.0% で計算。Theta は1日あたり、Vega は IV 1%変化あたりの値。
+              </p>
+            </div>
+          )}
 
           {/* Section: メモ */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
