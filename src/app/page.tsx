@@ -1,8 +1,12 @@
 import Link from 'next/link'
-import { getOpenTrades } from '@/lib/supabase'
+import { getOpenTrades, getLatestIvRanks } from '@/lib/supabase'
+import { IvRankGauge } from '@/components/IvRankGauge'
 
 export default async function Home() {
-  const openTrades = await getOpenTrades()
+  const [openTrades, ivRanks] = await Promise.all([
+    getOpenTrades(),
+    getLatestIvRanks(),
+  ])
 
   const openCount = openTrades.length
   // Phase 1: 簡易含み損益（エントリー価格ベース）
@@ -28,6 +32,18 @@ export default async function Home() {
           <p className="text-slate-200 text-lg max-w-xl mx-auto">
             IV分析に基づくエントリー判断・売買履歴の記録・敗因の可視化で、トレードの質を高める
           </p>
+        </div>
+
+        {/* IV Rank Gauges */}
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-400" />
+            ATM IVランク
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <IvRankGauge ivRank={ivRanks.call_iv_rank} label="コール IVランク" />
+            <IvRankGauge ivRank={ivRanks.put_iv_rank} label="プット IVランク" />
+          </div>
         </div>
 
         {/* Open Positions Summary */}
