@@ -21,6 +21,16 @@ export interface Trade {
   defeat_tags: string[] | null
 }
 
+export interface JQuantsToken {
+  id: string
+  refresh_token: string
+  id_token: string | null
+  refresh_token_expires_at: string
+  id_token_expires_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -28,6 +38,12 @@ export type Database = {
         Row: Trade
         Insert: Omit<Trade, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Trade, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+      j_quants_tokens: {
+        Row: JQuantsToken
+        Insert: Omit<JQuantsToken, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<JQuantsToken, 'id' | 'created_at' | 'updated_at'>>
         Relationships: []
       }
     }
