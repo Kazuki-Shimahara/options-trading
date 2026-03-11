@@ -63,3 +63,26 @@ create table if not exists j_quants_tokens (
 create trigger j_quants_tokens_updated_at
   before update on j_quants_tokens
   for each row execute function update_updated_at();
+
+-- =============================================
+-- IV履歴テーブル
+-- =============================================
+CREATE TABLE iv_history (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  recorded_at timestamptz NOT NULL DEFAULT now(),
+  underlying_price numeric(10, 2) NOT NULL,
+  strike_price integer NOT NULL,
+  expiry_date date NOT NULL,
+  option_type text NOT NULL CHECK (option_type IN ('call', 'put')),
+  iv numeric(8, 4) NOT NULL,
+  iv_rank numeric(5, 2),
+  iv_percentile numeric(5, 2),
+  hv20 numeric(8, 4),
+  hv60 numeric(8, 4),
+  nikkei_vi numeric(6, 2),
+  pcr numeric(6, 3),
+  data_source text NOT NULL
+);
+
+CREATE INDEX iv_history_recorded_at_idx ON iv_history (recorded_at DESC);
+CREATE INDEX iv_history_option_lookup_idx ON iv_history (strike_price, expiry_date, option_type, recorded_at DESC);
