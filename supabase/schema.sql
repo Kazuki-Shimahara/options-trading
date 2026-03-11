@@ -65,6 +65,54 @@ create trigger j_quants_tokens_updated_at
   for each row execute function update_updated_at();
 
 -- =============================================
+-- IVキャッシュテーブル（Phase 2用）
+-- =============================================
+create table if not exists iv_history (
+  id uuid primary key default gen_random_uuid(),
+  recorded_at timestamptz not null default now(),
+  underlying_price numeric(10, 2) not null,
+  strike_price integer not null,
+  expiry_date date not null,
+  option_type text not null check (option_type in ('call', 'put')),
+  iv numeric(8, 4) not null,
+  iv_rank numeric(5, 2),
+  iv_percentile numeric(5, 2),
+  hv20 numeric(8, 4),
+  hv60 numeric(8, 4),
+  nikkei_vi numeric(6, 2),
+  pcr numeric(6, 3),
+  data_source text not null
+);
+
+-- インデックス
+create index if not exists iv_history_recorded_at_idx on iv_history (recorded_at desc);
+create index if not exists iv_history_strike_expiry_idx on iv_history (strike_price, expiry_date);
+create index if not exists iv_history_option_type_idx on iv_history (option_type);
+
+-- RLS（Phase 4で有効化）
+alter table iv_history enable row level security;
+
+-- =============================================
+-- Web Push購読管理テーブル
+-- =============================================
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- updated_at を自動更新するトリガー
+create trigger push_subscriptions_updated_at
+  before update on push_subscriptions
+  for each row execute function update_updated_at();
+
+-- インデックス
+create index if not exists push_subscriptions_endpoint_idx on push_subscriptions (endpoint);
+
+-- =============================================
 -- ユーザー通知フィルタ設定テーブル
 -- =============================================
 create table if not exists user_preferences (
