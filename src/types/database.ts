@@ -25,6 +25,25 @@ export interface Trade {
   entry_vega: number | null
 }
 
+export type OptionType = 'call' | 'put'
+
+export interface IvHistory {
+  id: string
+  recorded_at: string
+  underlying_price: number
+  strike_price: number
+  expiry_date: string
+  option_type: OptionType
+  iv: number
+  iv_rank: number | null
+  iv_percentile: number | null
+  hv20: number | null
+  hv60: number | null
+  nikkei_vi: number | null
+  pcr: number | null
+  data_source: string
+}
+
 export interface JQuantsToken {
   id: string
   refresh_token: string
@@ -57,6 +76,12 @@ export type Database = {
         Row: JQuantsToken
         Insert: Omit<JQuantsToken, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<JQuantsToken, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+      iv_history: {
+        Row: IvHistory
+        Insert: Omit<IvHistory, 'id'>
+        Update: Partial<Omit<IvHistory, 'id'>>
         Relationships: []
       }
     }
