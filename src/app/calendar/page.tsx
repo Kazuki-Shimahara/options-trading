@@ -2,17 +2,24 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { getEventsForMonth, type CalendarEvent } from '@/lib/events'
+import { getEventsForMonth, type CalendarEvent, type EventCategory } from '@/lib/events'
 
 const categoryConfig: Record<
-  CalendarEvent['category'],
+  EventCategory,
   { color: string; dot: string; label: string }
 > = {
   sq: { color: 'text-red-400', dot: 'bg-red-400', label: 'SQ日' },
   fomc: { color: 'text-blue-400', dot: 'bg-blue-400', label: 'FOMC' },
+  fomc_press: { color: 'text-blue-300', dot: 'bg-blue-300', label: 'FRB記者会見' },
   boj: { color: 'text-purple-400', dot: 'bg-purple-400', label: '日銀会合' },
+  boj_press: { color: 'text-purple-300', dot: 'bg-purple-300', label: '日銀記者会見' },
+  ecb_press: { color: 'text-pink-400', dot: 'bg-pink-400', label: 'ECB記者会見' },
   employment: { color: 'text-green-400', dot: 'bg-green-400', label: '米雇用統計' },
   cpi: { color: 'text-yellow-400', dot: 'bg-yellow-400', label: 'CPI' },
+  gdp: { color: 'text-cyan-400', dot: 'bg-cyan-400', label: 'GDP' },
+  pce: { color: 'text-amber-400', dot: 'bg-amber-400', label: 'PCE' },
+  ism: { color: 'text-teal-400', dot: 'bg-teal-400', label: 'ISM' },
+  tankan: { color: 'text-indigo-400', dot: 'bg-indigo-400', label: '短観' },
   earnings: { color: 'text-orange-400', dot: 'bg-orange-400', label: '決算' },
   other: { color: 'text-slate-400', dot: 'bg-slate-400', label: 'その他' },
 }
@@ -140,7 +147,7 @@ export default function CalendarPage() {
 
         {/* Category legend */}
         <div className="flex flex-wrap gap-3 mb-4">
-          {(['sq', 'fomc', 'boj', 'employment'] as const).map((cat) => (
+          {(['sq', 'fomc', 'fomc_press', 'boj', 'boj_press', 'ecb_press', 'employment', 'cpi', 'gdp', 'pce', 'ism', 'tankan', 'earnings'] as EventCategory[]).map((cat) => (
             <div key={cat} className="flex items-center gap-1.5">
               <span
                 className={`w-2.5 h-2.5 rounded-full ${categoryConfig[cat].dot}`}
