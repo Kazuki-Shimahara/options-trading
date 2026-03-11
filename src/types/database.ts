@@ -63,6 +63,16 @@ export interface PushSubscriptionRecord {
   updated_at: string
 }
 
+export type TradingStyleValue = 'buy_focused' | 'sell_focused' | 'all'
+
+export interface UserPreference {
+  id: string
+  user_id: string | null
+  trading_style: TradingStyleValue
+  created_at: string
+  updated_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -84,11 +94,16 @@ export type Database = {
         Update: Partial<Omit<IvHistory, 'id'>>
         Relationships: []
       }
-    }
       push_subscriptions: {
         Row: PushSubscriptionRecord
         Insert: Omit<PushSubscriptionRecord, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<PushSubscriptionRecord, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+      user_preferences: {
+        Row: UserPreference
+        Insert: Omit<UserPreference, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<UserPreference, 'id' | 'created_at' | 'updated_at'>>
         Relationships: []
       }
     }

@@ -111,3 +111,25 @@ create trigger push_subscriptions_updated_at
 
 -- インデックス
 create index if not exists push_subscriptions_endpoint_idx on push_subscriptions (endpoint);
+
+-- =============================================
+-- ユーザー通知フィルタ設定テーブル
+-- =============================================
+create table if not exists user_preferences (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id),           -- Phase 4用（現在はNULL許容）
+  trading_style text not null default 'all' check (trading_style in ('buy_focused', 'sell_focused', 'all')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- updated_at を自動更新するトリガー
+create trigger user_preferences_updated_at
+  before update on user_preferences
+  for each row execute function update_updated_at();
+
+-- インデックス
+create index if not exists user_preferences_user_id_idx on user_preferences (user_id);
+
+-- RLS（Phase 4で有効化）
+alter table user_preferences enable row level security;
