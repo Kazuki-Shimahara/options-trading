@@ -47,6 +47,7 @@ export function IvRankGauge({ ivRank, label = 'IVランク' }: IvRankGaugeProps)
       {/* Progress bar */}
       <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
         <div
+          data-testid="iv-gauge-bar"
           className={`h-full rounded-full transition-all duration-500 ${color.bar}`}
           style={{ width: `${clamped}%` }}
         />
