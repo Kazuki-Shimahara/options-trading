@@ -28,6 +28,12 @@ export default function Nav() {
             分析
           </Link>
           <Link
+            href="/settings"
+            className="px-3 py-1.5 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            設定
+          </Link>
+          <Link
             href="/trades/new"
             className="ml-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
           >
