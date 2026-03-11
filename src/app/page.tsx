@@ -1,6 +1,17 @@
 import Link from 'next/link'
+import { getOpenTrades } from '@/lib/supabase'
 
-export default function Home() {
+export default async function Home() {
+  const openTrades = await getOpenTrades()
+
+  const openCount = openTrades.length
+  // Phase 1: 簡易含み損益（エントリー価格ベース）
+  // entry_price * quantity * 1000 の合計をポジション価値として表示
+  const totalPositionValue = openTrades.reduce(
+    (sum, t) => sum + t.entry_price * t.quantity * 1000,
+    0
+  )
+
   return (
     <main className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 py-16">
       <div className="w-full max-w-3xl">
@@ -17,6 +28,62 @@ export default function Home() {
           <p className="text-slate-200 text-lg max-w-xl mx-auto">
             IV分析に基づくエントリー判断・売買履歴の記録・敗因の可視化で、トレードの質を高める
           </p>
+        </div>
+
+        {/* Open Positions Summary */}
+        <div className="mb-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+          <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400" />
+            未決済ポジション
+          </h2>
+          {openCount === 0 ? (
+            <p className="text-sm text-slate-400">未決済ポジションはありません</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-xs text-slate-400 mb-1">ポジション数</p>
+                  <p className="text-2xl font-bold text-amber-400 tabular-nums">
+                    {openCount}
+                    <span className="text-sm font-normal text-slate-500 ml-1">件</span>
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 mb-1">合計ポジション価値</p>
+                  <p className="text-2xl font-bold text-slate-100 tabular-nums">
+                    {totalPositionValue.toLocaleString()}
+                    <span className="text-sm font-normal text-slate-500 ml-1">円</span>
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {openTrades.map((trade) => (
+                  <Link
+                    key={trade.id}
+                    href={`/trades/${trade.id}`}
+                    className="flex items-center gap-3 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 rounded-xl px-4 py-3 transition-all duration-150"
+                  >
+                    <span className={`flex-shrink-0 w-12 text-center text-xs font-bold py-1 rounded-lg ${
+                      trade.trade_type === 'call'
+                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                    }`}>
+                      {trade.trade_type.toUpperCase()}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-white">
+                        {trade.strike_price.toLocaleString()}円
+                      </span>
+                      <span className="text-xs text-slate-400 ml-2">×{trade.quantity}枚</span>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Cards */}
