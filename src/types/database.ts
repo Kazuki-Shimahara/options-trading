@@ -35,6 +35,15 @@ export interface JQuantsToken {
   updated_at: string
 }
 
+export interface PushSubscriptionRecord {
+  id: string
+  endpoint: string
+  p256dh: string
+  auth: string
+  created_at: string
+  updated_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -48,6 +57,13 @@ export type Database = {
         Row: JQuantsToken
         Insert: Omit<JQuantsToken, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<JQuantsToken, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+    }
+      push_subscriptions: {
+        Row: PushSubscriptionRecord
+        Insert: Omit<PushSubscriptionRecord, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<PushSubscriptionRecord, 'id' | 'created_at' | 'updated_at'>>
         Relationships: []
       }
     }
