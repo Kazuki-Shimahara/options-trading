@@ -40,7 +40,7 @@ export default async function TradesPage() {
 
         {/* Stats */}
         {trades.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <p className="text-xs text-slate-300 mb-1">累計損益</p>
               <p className={`text-xl font-bold tabular-nums ${totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -85,20 +85,60 @@ export default async function TradesPage() {
               <Link
                 key={trade.id}
                 href={`/trades/${trade.id}`}
-                className="group flex items-center gap-4 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 rounded-xl px-4 py-3.5 transition-all duration-150"
+                className="group flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 rounded-xl px-4 py-3.5 transition-all duration-150"
               >
-                {/* Type Badge */}
-                <div className={`flex-shrink-0 w-14 text-center text-xs font-bold py-1 rounded-lg ${
-                  trade.trade_type === 'call'
-                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                    : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                }`}>
-                  {trade.trade_type.toUpperCase()}
+                {/* Mobile: top row with badge + PnL */}
+                <div className="flex items-center justify-between sm:contents">
+                  {/* Type Badge */}
+                  <div className={`flex-shrink-0 w-14 text-center text-xs font-bold py-1 rounded-lg ${
+                    trade.trade_type === 'call'
+                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                      : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                  }`}>
+                    {trade.trade_type.toUpperCase()}
+                  </div>
+
+                  {/* Info */}
+                  <div className="hidden sm:block flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white">
+                        {trade.strike_price.toLocaleString()}円
+                      </span>
+                      <span className="text-xs text-slate-400">×{trade.quantity}枚</span>
+                      {trade.iv_at_entry !== null && (
+                        <span className="text-xs text-slate-400">IV {trade.iv_at_entry}%</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-300">{trade.trade_date}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        trade.status === 'open'
+                          ? 'text-amber-400 bg-amber-500/10'
+                          : 'text-slate-500 bg-slate-800'
+                      }`}>
+                        {trade.status === 'open' ? '未決済' : '決済済'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* PnL */}
+                  <div className="flex-shrink-0 text-right flex items-center gap-2">
+                    {trade.pnl !== null ? (
+                      <span className={`text-sm font-semibold tabular-nums ${
+                        trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
+                      }`}>
+                        {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toLocaleString()}円
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
+                    )}
+                    <span className="text-slate-700 group-hover:text-slate-500 transition-colors text-sm flex-shrink-0">›</span>
+                  </div>
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                {/* Mobile: info row */}
+                <div className="sm:hidden">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-white">
                       {trade.strike_price.toLocaleString()}円
                     </span>
@@ -106,8 +146,6 @@ export default async function TradesPage() {
                     {trade.iv_at_entry !== null && (
                       <span className="text-xs text-slate-400">IV {trade.iv_at_entry}%</span>
                     )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs text-slate-300">{trade.trade_date}</span>
                     <span className={`text-xs px-1.5 py-0.5 rounded ${
                       trade.status === 'open'
@@ -118,21 +156,6 @@ export default async function TradesPage() {
                     </span>
                   </div>
                 </div>
-
-                {/* PnL */}
-                <div className="flex-shrink-0 text-right">
-                  {trade.pnl !== null ? (
-                    <span className={`text-sm font-semibold tabular-nums ${
-                      trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
-                    }`}>
-                      {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toLocaleString()}円
-                    </span>
-                  ) : (
-                    <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
-                  )}
-                </div>
-
-                <span className="text-slate-700 group-hover:text-slate-500 transition-colors text-sm flex-shrink-0">›</span>
               </Link>
             ))}
           </div>

@@ -87,7 +87,7 @@ export default function NewTradePage() {
               <input type="hidden" name="trade_type" value={tradeType} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>取引日 *</label>
                 <input
@@ -109,7 +109,7 @@ export default function NewTradePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>権利行使価格 *</label>
                 <input
@@ -137,7 +137,7 @@ export default function NewTradePage() {
           {/* Section: 価格 */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
             <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">価格</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>購入価格（プレミアム）*</label>
                 <input
@@ -160,7 +160,7 @@ export default function NewTradePage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>決済価格（任意）</label>
                 <input

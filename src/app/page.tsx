@@ -53,7 +53,7 @@ export default function Home() {
         </div>
 
         {/* Features */}
-        <div className="mt-12 grid grid-cols-3 gap-4 text-center">
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
           {[
             { label: 'IV分析', desc: 'ブラック・ショールズ' },
             { label: 'LINE通知', desc: '買い時シグナル' },
