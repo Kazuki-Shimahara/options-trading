@@ -168,7 +168,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>取引日 *</label>
                     <input name="trade_date" type="date" required defaultValue={trade.trade_date} className={inputClass} />
@@ -179,7 +179,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>権利行使価格 *</label>
                     <input name="strike_price" type="number" required defaultValue={trade.strike_price} className={inputClass} />
@@ -190,7 +190,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>購入価格 *</label>
                     <input name="entry_price" type="number" step="0.01" required defaultValue={trade.entry_price} className={inputClass} />
@@ -212,7 +212,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
           {/* 決済情報（編集・決済共通） */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
             <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">決済情報</h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>決済価格</label>
                 <input
