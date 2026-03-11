@@ -16,6 +16,12 @@ export default function Nav() {
             履歴
           </Link>
           <Link
+            href="/calendar"
+            className="px-3 py-1.5 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+          >
+            カレンダー
+          </Link>
+          <Link
             href="/analytics"
             className="px-3 py-1.5 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
           >
