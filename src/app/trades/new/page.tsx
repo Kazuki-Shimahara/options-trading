@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { calculatePnl } from '@/lib/trade'
+import { createTrade } from '@/app/actions/trades'
 
 const inputClass =
   'w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-sm placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
@@ -25,38 +24,30 @@ export default function NewTradePage() {
     const form = e.currentTarget
     const data = new FormData(form)
 
-    const entryPrice = parseFloat(data.get('entry_price') as string)
     const exitPriceRaw = data.get('exit_price') as string
-    const exitPrice = exitPriceRaw ? parseFloat(exitPriceRaw) : null
     const exitDateRaw = data.get('exit_date') as string
-    const quantity = parseInt(data.get('quantity') as string)
 
-    const pnl = calculatePnl(exitPrice, entryPrice, quantity)
-
-    const { error: insertError } = await supabase.from('trades').insert({
+    const result = await createTrade({
       trade_date: data.get('trade_date') as string,
       trade_type: tradeType,
       strike_price: parseInt(data.get('strike_price') as string),
       expiry_date: data.get('expiry_date') as string,
-      quantity,
-      entry_price: entryPrice,
-      exit_price: exitPrice,
+      quantity: parseInt(data.get('quantity') as string),
+      entry_price: parseFloat(data.get('entry_price') as string),
+      exit_price: exitPriceRaw ? parseFloat(exitPriceRaw) : null,
       exit_date: exitDateRaw || null,
-      pnl,
       iv_at_entry: data.get('iv_at_entry') ? parseFloat(data.get('iv_at_entry') as string) : null,
       memo: (data.get('memo') as string) || null,
-      status: exitPrice !== null ? 'closed' : 'open',
-      defeat_tags: null,
-      user_id: null,
     })
 
-    if (insertError) {
-      setError(insertError.message)
+    if (!result.success) {
+      setError(result.error)
       setLoading(false)
       return
     }
 
     router.push('/trades')
+    router.refresh()
   }
 
   return (
