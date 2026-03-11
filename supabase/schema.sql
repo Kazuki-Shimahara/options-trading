@@ -91,3 +91,23 @@ create index if not exists iv_history_option_type_idx on iv_history (option_type
 
 -- RLS（Phase 4で有効化）
 alter table iv_history enable row level security;
+
+-- =============================================
+-- Web Push購読管理テーブル
+-- =============================================
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- updated_at を自動更新するトリガー
+create trigger push_subscriptions_updated_at
+  before update on push_subscriptions
+  for each row execute function update_updated_at();
+
+-- インデックス
+create index if not exists push_subscriptions_endpoint_idx on push_subscriptions (endpoint);
