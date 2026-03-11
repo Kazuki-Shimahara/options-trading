@@ -41,3 +41,21 @@ create index if not exists trades_user_id_idx on trades (user_id);
 alter table trades enable row level security;
 -- Phase 4でのポリシー追加例:
 -- create policy "Users can only see own trades" on trades for select using (auth.uid() = user_id);
+
+-- =============================================
+-- J-Quants API トークン管理テーブル
+-- =============================================
+create table if not exists j_quants_tokens (
+  id uuid primary key default gen_random_uuid(),
+  refresh_token text not null,
+  id_token text,
+  refresh_token_expires_at timestamptz not null,
+  id_token_expires_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- updated_at を自動更新するトリガー
+create trigger j_quants_tokens_updated_at
+  before update on j_quants_tokens
+  for each row execute function update_updated_at();
