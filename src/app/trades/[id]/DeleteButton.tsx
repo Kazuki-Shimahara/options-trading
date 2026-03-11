@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { deleteTrade } from '@/app/actions/trades'
 
 export default function DeleteButton({ tradeId }: { tradeId: string }) {
   const router = useRouter()
@@ -12,10 +12,10 @@ export default function DeleteButton({ tradeId }: { tradeId: string }) {
     if (!confirm('この取引記録を削除しますか？この操作は元に戻せません。')) return
 
     setLoading(true)
-    const { error } = await supabase.from('trades').delete().eq('id', tradeId)
+    const result = await deleteTrade(tradeId)
 
-    if (error) {
-      alert('削除に失敗しました: ' + error.message)
+    if (!result.success) {
+      alert('削除に失敗しました: ' + result.error)
       setLoading(false)
       return
     }
