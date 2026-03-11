@@ -1,114 +1,168 @@
 import { describe, it, expect } from 'vitest'
-import { detectSignal, calculateIVAverage, type IVSignalType } from '../iv-signals'
+import {
+  evaluateIVSignal,
+  type IVSignalInput,
+  type IVSignalResult,
+} from '../iv-signals'
 
-describe('calculateIVAverage', () => {
-  it('IV配列の平均を正しく算出する', () => {
-    expect(calculateIVAverage([20, 22, 24, 26, 28])).toBe(24)
-  })
+describe('evaluateIVSignal', () => {
+  const baseInput: IVSignalInput = {
+    currentIV: 20,
+    avg20dIV: 25,
+    avg60dIV: 23, // 20/23 = 13%低い（強買い閾値20%未満）
+    strikePrice: 38000,
+    spotPrice: 38000,
+    remainingBusinessDays: 20,
+    evaluationDate: new Date(2026, 2, 2), // SQ週でない日
+  }
 
-  it('単一要素の場合はその値を返す', () => {
-    expect(calculateIVAverage([15])).toBe(15)
-  })
-
-  it('空配列の場合はnullを返す', () => {
-    expect(calculateIVAverage([])).toBeNull()
-  })
-
-  it('小数点のIV値でも正しく計算する', () => {
-    const result = calculateIVAverage([20.5, 21.5])
-    expect(result).toBe(21)
-  })
-})
-
-describe('detectSignal', () => {
   describe('通常買いシグナル', () => {
-    it('現在IVが20日平均より15%以上低い場合に「通常買い」を返す', () => {
-      // iv20Avg = 100, 15%低い = 85, iv60Avg = 100 → 85 <= 80? NO → 強買いにはならない
-      const result = detectSignal(85, 100, 100)
-      expect(result).not.toBeNull()
-      expect(result!.type).toBe('normal_buy' satisfies IVSignalType)
-      expect(result!.message).toBe('IV低下：買い検討タイミング')
+    it('現在IVが20日平均より15%以上低い場合に買いシグナルを出す', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 20,
+        avg20dIV: 24, // 20/24 = 0.833... → 16.7%低い
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('buy')
+      expect(result.message).toContain('IV低下')
     })
 
-    it('ちょうど15%低い場合もシグナルを返す（境界値）', () => {
-      // iv20Avg = 100, ちょうど15%低い = 85
-      const result = detectSignal(85, 100, 80)
-      expect(result).not.toBeNull()
-      expect(result!.type).toBe('normal_buy' satisfies IVSignalType)
-    })
-
-    it('14.9%低い場合はシグナルを返さない（境界値）', () => {
-      // iv20Avg = 100, 14.9%低い = 85.1
-      const result = detectSignal(85.1, 100, 80)
-      expect(result).toBeNull()
+    it('現在IVが20日平均より14%低い場合はシグナルなし', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 21.5,
+        avg20dIV: 25, // 21.5/25 = 0.86 → 14%低い
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('none')
     })
   })
 
   describe('強買いシグナル', () => {
-    it('現在IVが60日平均より20%以上低く、かつ20日平均も下回る場合に「強買い」を返す', () => {
-      // iv60Avg = 100, 20%低い = 80, iv20Avg = 90, currentIV = 75 (< 80 かつ < 90)
-      const result = detectSignal(75, 90, 100)
-      expect(result).not.toBeNull()
-      expect(result!.type).toBe('strong_buy' satisfies IVSignalType)
-      expect(result!.message).toBe('強IVシグナル：買い好機')
+    it('現在IVが60日平均より20%以上低く、20日平均も下回る場合に強買いシグナルを出す', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 20,
+        avg20dIV: 22,
+        avg60dIV: 26, // 20/26 = 0.769... → 23%低い
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('strong_buy')
+      expect(result.message).toContain('強IVシグナル')
     })
 
-    it('60日平均よりちょうど20%低く20日平均も下回る場合もシグナルを返す（境界値）', () => {
-      // iv60Avg = 100, ちょうど20%低い = 80, iv20Avg = 90, currentIV = 80 (= 80 かつ < 90)
-      const result = detectSignal(80, 90, 100)
-      expect(result).not.toBeNull()
-      expect(result!.type).toBe('strong_buy' satisfies IVSignalType)
-    })
-
-    it('60日平均より20%以上低いが20日平均を上回る場合は強買いにならない', () => {
-      // iv60Avg = 100, currentIV = 79 (< 80) だが iv20Avg = 75 → currentIV > iv20Avg
-      const result = detectSignal(79, 75, 100)
-      // 20日平均より上 → 通常買いではない、強買い条件の20日平均下回りも不成立
-      // ただし60日比は20%超低い... 20日平均を下回る必要あり
-      expect(result).toBeNull()
-    })
-
-    it('強買い条件と通常買い条件の両方を満たす場合は強買いが優先される', () => {
-      // iv20Avg = 100, iv60Avg = 100
-      // currentIV = 75 → 20日平均比25%低い(>15%) かつ 60日平均比25%低い(>20%) かつ 20日平均下回る
-      const result = detectSignal(75, 100, 100)
-      expect(result).not.toBeNull()
-      expect(result!.type).toBe('strong_buy' satisfies IVSignalType)
+    it('60日平均より20%低いが20日平均を上回る場合は強買いにならない', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 22,
+        avg20dIV: 21, // 20日平均を上回っている
+        avg60dIV: 28, // 22/28 = 0.786 → 21.4%低い
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).not.toBe('strong_buy')
     })
   })
 
   describe('売りシグナル', () => {
-    it('現在IVが20日平均より20%以上高い場合に「売り」を返す', () => {
-      // iv20Avg = 100, 20%高い = 120 → currentIV >= 120 でシグナル
-      const result = detectSignal(120, 100, 100)
-      expect(result).not.toBeNull()
-      expect(result!.type).toBe('sell' satisfies IVSignalType)
-      expect(result!.message).toBe('IV上昇：売り/ヘッジ検討')
-    })
-
-    it('ちょうど20%高い場合もシグナルを返す（境界値）', () => {
-      const result = detectSignal(120, 100, 100)
-      expect(result).not.toBeNull()
-      expect(result!.type).toBe('sell' satisfies IVSignalType)
-    })
-
-    it('19.9%高い場合はシグナルを返さない（境界値）', () => {
-      // iv20Avg = 100, 19.9%高い = 119.9
-      const result = detectSignal(119.9, 100, 100)
-      expect(result).toBeNull()
+    it('現在IVが20日平均より20%以上高い場合に売りシグナルを出す', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 30,
+        avg20dIV: 24, // 30/24 = 1.25 → 25%高い
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('sell')
+      expect(result.message).toContain('IV上昇')
     })
   })
 
-  describe('シグナルなし', () => {
-    it('どの条件も満たさない場合はnullを返す', () => {
-      // iv20Avg = 100, currentIV = 95 → 5%低い（15%未満）
-      const result = detectSignal(95, 100, 100)
-      expect(result).toBeNull()
+  describe('SQ週フィルタ', () => {
+    it('SQ前3営業日以内はシグナル閾値が緩和される', () => {
+      // 通常なら買いシグナルが出るケース
+      const normalInput: IVSignalInput = {
+        ...baseInput,
+        currentIV: 20,
+        avg20dIV: 24, // 16.7%低い → 通常なら買いシグナル
+        evaluationDate: new Date(2026, 2, 2), // SQ週でない
+      }
+      const normalResult = evaluateIVSignal(normalInput)
+      expect(normalResult.signal).toBe('buy')
+
+      // SQ週では同じ条件でシグナルが出ない
+      const sqWeekInput: IVSignalInput = {
+        ...normalInput,
+        evaluationDate: new Date(2026, 2, 11), // SQ前2営業日
+      }
+      const sqResult = evaluateIVSignal(sqWeekInput)
+      expect(sqResult.signal).toBe('none')
+      expect(sqResult.sqWeekFilter).toBe(true)
     })
 
-    it('IV値が平均とほぼ同じ場合はnullを返す', () => {
-      const result = detectSignal(100, 100, 100)
-      expect(result).toBeNull()
+    it('SQ週でも十分に強いシグナルは出す', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 15,
+        avg20dIV: 25, // 40%低い → 非常に強いシグナル
+        avg60dIV: 28,
+        evaluationDate: new Date(2026, 2, 11), // SQ前2営業日
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).not.toBe('none')
+    })
+  })
+
+  describe('残存日数フィルタ', () => {
+    it('残存5営業日未満のオプションを除外する', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 20,
+        avg20dIV: 24,
+        remainingBusinessDays: 4,
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('none')
+      expect(result.filtered).toBe(true)
+      expect(result.filterReason).toContain('残存')
+    })
+
+    it('残存5営業日以上のオプションは除外しない', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 20,
+        avg20dIV: 24,
+        remainingBusinessDays: 5,
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('buy')
+    })
+  })
+
+  describe('ATMフィルタ', () => {
+    it('ATMから±2000円以内のオプションはシグナルを出す', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 20,
+        avg20dIV: 24,
+        strikePrice: 40000,
+        spotPrice: 38500, // 差: 1500円
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('buy')
+    })
+
+    it('ATMから±2000円超のオプションを除外する', () => {
+      const input: IVSignalInput = {
+        ...baseInput,
+        currentIV: 20,
+        avg20dIV: 24,
+        strikePrice: 41000,
+        spotPrice: 38000, // 差: 3000円
+      }
+      const result = evaluateIVSignal(input)
+      expect(result.signal).toBe('none')
+      expect(result.filtered).toBe(true)
+      expect(result.filterReason).toContain('ATM')
     })
   })
 })

@@ -1,78 +1,155 @@
 /**
- * IVシグナル判定ロジック（2段階閾値）
+ * IVシグナル判定ロジック（2段階閾値 + SQ週フィルタ）
  *
- * IVの移動平均との乖離に基づき3種類のシグナルを判定する。
- * | シグナル | 条件 |
- * |---------|------|
- * | 通常買い | 現在IVが20日平均より15%以上低い |
- * | 強買い   | 現在IVが60日平均より20%以上低い、かつ20日平均も下回る |
- * | 売り     | 現在IVが20日平均より20%以上高い |
+ * シグナル種別:
+ * - 通常買いシグナル: 現在IVが20日平均より15%以上低い
+ * - 強買いシグナル: 現在IVが60日平均より20%以上低い、かつ20日平均も下回る
+ * - 売りシグナル: 現在IVが20日平均より20%以上高い
+ *
+ * フィルタ:
+ * - 残存5営業日未満のオプションを除外
+ * - ATMから±2000円超のオプションを除外
+ * - SQ前3営業日は閾値を緩和
  */
 
-export type IVSignalType = 'normal_buy' | 'strong_buy' | 'sell'
+import { getSQWeekSensitivity } from './sq-helper'
 
-export interface IVSignal {
-  type: IVSignalType
+export type SignalType = 'strong_buy' | 'buy' | 'sell' | 'none'
+
+export interface IVSignalInput {
+  /** 現在のIV */
+  currentIV: number
+  /** 20日移動平均IV */
+  avg20dIV: number
+  /** 60日移動平均IV */
+  avg60dIV: number
+  /** 行使価格 */
+  strikePrice: number
+  /** 原資産価格（日経225先物） */
+  spotPrice: number
+  /** 残存営業日数 */
+  remainingBusinessDays: number
+  /** 評価日（SQ週判定に使用） */
+  evaluationDate: Date
+}
+
+export interface IVSignalResult {
+  /** シグナル種別 */
+  signal: SignalType
+  /** 通知メッセージ */
   message: string
+  /** フィルタで除外されたか */
+  filtered: boolean
+  /** フィルタ除外理由 */
+  filterReason?: string
+  /** SQ週フィルタで抑制されたか */
+  sqWeekFilter: boolean
+  /** IV乖離率（20日平均との比較） */
+  deviation20d: number
+  /** IV乖離率（60日平均との比較） */
+  deviation60d: number
 }
 
-const SIGNAL_MESSAGES: Record<IVSignalType, string> = {
-  normal_buy: 'IV低下：買い検討タイミング',
-  strong_buy: '強IVシグナル：買い好機',
-  sell: 'IV上昇：売り/ヘッジ検討',
-}
+/** 通常買いシグナル閾値（20日平均比） */
+const BUY_THRESHOLD_20D = 0.15
+/** 強買いシグナル閾値（60日平均比） */
+const STRONG_BUY_THRESHOLD_60D = 0.20
+/** 売りシグナル閾値（20日平均比） */
+const SELL_THRESHOLD_20D = 0.20
+/** ATMからの最大乖離（円） */
+const ATM_RANGE = 2000
+/** 最低残存営業日数 */
+const MIN_REMAINING_DAYS = 5
 
-/**
- * IV配列の平均値を算出する
- *
- * @param ivValues IV値の配列
- * @returns 平均値。空配列の場合はnull
- */
-export function calculateIVAverage(ivValues: number[]): number | null {
-  if (ivValues.length === 0) {
-    return null
-  }
-  const sum = ivValues.reduce((acc, val) => acc + val, 0)
-  return sum / ivValues.length
-}
+export function evaluateIVSignal(input: IVSignalInput): IVSignalResult {
+  const {
+    currentIV,
+    avg20dIV,
+    avg60dIV,
+    strikePrice,
+    spotPrice,
+    remainingBusinessDays,
+    evaluationDate,
+  } = input
 
-/**
- * シグナル判定を行う
- *
- * 優先順位: 強買い > 売り > 通常買い
- * - 強買い: currentIV <= iv60Avg * 0.8 かつ currentIV < iv20Avg
- * - 売り:   currentIV >= iv20Avg * 1.2
- * - 通常買い: currentIV <= iv20Avg * 0.85
- *
- * @param currentIV 現在のIV
- * @param iv20Avg 20日移動平均IV
- * @param iv60Avg 60日移動平均IV
- * @returns IVSignal または null（シグナルなし）
- */
-export function detectSignal(
-  currentIV: number,
-  iv20Avg: number,
-  iv60Avg: number
-): IVSignal | null {
-  const isStrongBuy =
-    currentIV <= iv60Avg * (1 - 0.2) && currentIV < iv20Avg
-  const isSell = currentIV >= iv20Avg * (1 + 0.2)
-  const isNormalBuy = currentIV <= iv20Avg * (1 - 0.15)
+  const deviation20d = (currentIV - avg20dIV) / avg20dIV
+  const deviation60d = (currentIV - avg60dIV) / avg60dIV
 
-  // 強買いが最優先
-  if (isStrongBuy) {
-    return { type: 'strong_buy', message: SIGNAL_MESSAGES.strong_buy }
+  const baseResult: IVSignalResult = {
+    signal: 'none',
+    message: '',
+    filtered: false,
+    sqWeekFilter: false,
+    deviation20d,
+    deviation60d,
   }
 
-  // 売りシグナル
-  if (isSell) {
-    return { type: 'sell', message: SIGNAL_MESSAGES.sell }
+  // 残存日数フィルタ
+  if (remainingBusinessDays < MIN_REMAINING_DAYS) {
+    return {
+      ...baseResult,
+      filtered: true,
+      filterReason: '残存営業日数が5日未満',
+    }
   }
 
-  // 通常買いシグナル
-  if (isNormalBuy) {
-    return { type: 'normal_buy', message: SIGNAL_MESSAGES.normal_buy }
+  // ATMフィルタ
+  const atmDistance = Math.abs(strikePrice - spotPrice)
+  if (atmDistance > ATM_RANGE) {
+    return {
+      ...baseResult,
+      filtered: true,
+      filterReason: `ATMから${atmDistance}円乖離（上限${ATM_RANGE}円）`,
+    }
   }
 
-  return null
+  // SQ週感度調整
+  const sqSensitivity = getSQWeekSensitivity(evaluationDate)
+
+  // 閾値にmultiplierを適用
+  const buyThreshold = BUY_THRESHOLD_20D * sqSensitivity.multiplier
+  const strongBuyThreshold = STRONG_BUY_THRESHOLD_60D * sqSensitivity.multiplier
+  const sellThreshold = SELL_THRESHOLD_20D * sqSensitivity.multiplier
+
+  // 強買いシグナル判定（優先度高）
+  if (deviation60d <= -strongBuyThreshold && currentIV < avg20dIV) {
+    return {
+      ...baseResult,
+      signal: 'strong_buy',
+      message: '強IVシグナル：買い好機',
+      sqWeekFilter: false,
+    }
+  }
+
+  // 売りシグナル判定
+  if (deviation20d >= sellThreshold) {
+    return {
+      ...baseResult,
+      signal: 'sell',
+      message: 'IV上昇：売り/ヘッジ検討',
+      sqWeekFilter: false,
+    }
+  }
+
+  // 通常買いシグナル判定
+  if (deviation20d <= -buyThreshold) {
+    return {
+      ...baseResult,
+      signal: 'buy',
+      message: 'IV低下：買い検討タイミング',
+      sqWeekFilter: false,
+    }
+  }
+
+  // シグナルなし（SQ週フィルタで抑制された可能性をチェック）
+  const wouldSignalWithoutSQ = sqSensitivity.isSQWeek && (
+    deviation20d <= -BUY_THRESHOLD_20D ||
+    deviation20d >= SELL_THRESHOLD_20D ||
+    (deviation60d <= -STRONG_BUY_THRESHOLD_60D && currentIV < avg20dIV)
+  )
+
+  return {
+    ...baseResult,
+    sqWeekFilter: wouldSignalWithoutSQ,
+  }
 }
