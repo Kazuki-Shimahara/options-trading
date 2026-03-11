@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Nav from '@/components/Nav'
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -29,6 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950 text-slate-100 min-h-screen`}
       >
         <Nav />
+        <ServiceWorkerRegistration />
         <div className="pt-14">{children}</div>
       </body>
     </html>

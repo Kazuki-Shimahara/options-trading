@@ -63,3 +63,24 @@ create table if not exists j_quants_tokens (
 create trigger j_quants_tokens_updated_at
   before update on j_quants_tokens
   for each row execute function update_updated_at();
+
+-- =============================================
+-- Web Push通知 サブスクリプション管理テーブル
+-- =============================================
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- updated_at を自動更新するトリガー
+create trigger push_subscriptions_updated_at
+  before update on push_subscriptions
+  for each row execute function update_updated_at();
+
+-- インデックス
+create index if not exists push_subscriptions_endpoint_idx on push_subscriptions (endpoint);
