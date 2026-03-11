@@ -20,6 +20,10 @@ interface CreateTradeInput {
   exit_date: string | null
   iv_at_entry: number | null
   memo: string | null
+  entry_delta: number | null
+  entry_gamma: number | null
+  entry_theta: number | null
+  entry_vega: number | null
 }
 
 interface UpdateTradeInput {
@@ -68,6 +72,10 @@ export async function createTrade(data: CreateTradeInput): Promise<TradeActionRe
     status: data.exit_price !== null ? 'closed' : 'open',
     defeat_tags: null,
     user_id: null,
+    entry_delta: data.entry_delta,
+    entry_gamma: data.entry_gamma,
+    entry_theta: data.entry_theta,
+    entry_vega: data.entry_vega,
   })
 
   if (error) {

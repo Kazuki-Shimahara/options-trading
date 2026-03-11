@@ -16,7 +16,11 @@ create table if not exists trades (
   iv_at_entry numeric(6, 2),
   memo text,
   status text not null default 'open' check (status in ('open', 'closed')),
-  defeat_tags text[]
+  defeat_tags text[],
+  entry_delta numeric(8, 4),
+  entry_gamma numeric(10, 6),
+  entry_theta numeric(10, 2),
+  entry_vega numeric(10, 2)
 );
 
 -- updated_at を自動更新するトリガー
