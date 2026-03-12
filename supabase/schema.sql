@@ -21,6 +21,7 @@ create table if not exists trades (
   entry_gamma numeric(10, 6),
   entry_theta numeric(10, 2),
   entry_vega numeric(10, 2),
+  market_env_tags text[],
   entry_iv_rank numeric(5, 2),
   entry_iv_hv_ratio numeric(8, 4)
 );

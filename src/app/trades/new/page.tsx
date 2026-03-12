@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createTrade } from '@/app/actions/trades'
 import { calculateGreeks, type Greeks } from '@/lib/greeks'
 import type { BSInputs } from '@/lib/black-scholes'
+import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
 
 const inputClass =
   'w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-sm placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
@@ -17,6 +18,10 @@ export default function NewTradePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tradeType, setTradeType] = useState<'call' | 'put'>('call')
+
+  // タグ選択
+  const [selectedDefeatTags, setSelectedDefeatTags] = useState<string[]>([])
+  const [selectedMarketEnvTags, setSelectedMarketEnvTags] = useState<string[]>([])
 
   // Greeks計算用の入力状態
   const [spotPrice, setSpotPrice] = useState<string>('')
@@ -69,6 +74,24 @@ export default function NewTradePage() {
     computeGreeks()
   }, [computeGreeks])
 
+  function toggleDefeatTag(tag: string) {
+    setSelectedDefeatTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
+  function toggleMarketEnvTag(axis: string, tag: string) {
+    setSelectedMarketEnvTags((prev) => {
+      const axisConfig = MARKET_ENV_AXES[axis as keyof typeof MARKET_ENV_AXES]
+      const axisTags = axisConfig.tags as readonly string[]
+      const withoutAxis = prev.filter((t) => !axisTags.includes(t))
+      if (prev.includes(tag)) {
+        return withoutAxis
+      }
+      return [...withoutAxis, tag]
+    })
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
@@ -95,6 +118,8 @@ export default function NewTradePage() {
       entry_gamma: greeks?.gamma ?? null,
       entry_theta: greeks?.theta ?? null,
       entry_vega: greeks?.vega ?? null,
+      defeat_tags: selectedDefeatTags.length > 0 ? selectedDefeatTags : null,
+      market_env_tags: selectedMarketEnvTags.length > 0 ? selectedMarketEnvTags : null,
     })
 
     if (!result.success) {
@@ -296,6 +321,59 @@ export default function NewTradePage() {
               </p>
             </div>
           )}
+
+          {/* Section: 市場環境タグ */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">市場環境タグ</h2>
+            {Object.entries(MARKET_ENV_AXES).map(([axis, config]) => (
+              <div key={axis}>
+                <label className={labelClass}>{config.label}</label>
+                <div className="flex flex-wrap gap-2">
+                  {config.tags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleMarketEnvTag(axis, tag)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        selectedMarketEnvTags.includes(tag)
+                          ? 'bg-emerald-600 text-white border border-emerald-500'
+                          : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Section: 敗因タグ */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">敗因タグ</h2>
+            <p className="text-xs text-slate-600">該当するものを複数選択できます</p>
+            {Object.entries(DEFEAT_TAG_CATEGORIES).map(([category, tags]) => (
+              <div key={category}>
+                <label className={labelClass}>{category}</label>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag: DefeatTag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleDefeatTag(tag)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        selectedDefeatTags.includes(tag)
+                          ? 'bg-red-600 text-white border border-red-500'
+                          : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* Section: メモ */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
