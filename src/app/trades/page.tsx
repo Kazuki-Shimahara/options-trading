@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { Trade } from '@/types/database'
+import { calculateMaxLoss } from '@/lib/max-loss'
 
 async function getTrades(): Promise<Trade[]> {
   const { data, error } = await supabase
@@ -121,7 +122,7 @@ export default async function TradesPage() {
                     </div>
                   </div>
 
-                  {/* PnL */}
+                  {/* PnL / Max Loss */}
                   <div className="flex-shrink-0 text-right flex items-center gap-2">
                     {trade.pnl !== null ? (
                       <span className={`text-sm font-semibold tabular-nums ${
@@ -130,7 +131,12 @@ export default async function TradesPage() {
                         {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toLocaleString()}円
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
+                        <span className="text-xs text-red-400/80 tabular-nums">
+                          最大損失 {calculateMaxLoss(trade).toLocaleString()}円
+                        </span>
+                      </div>
                     )}
                     <span className="text-slate-700 group-hover:text-slate-500 transition-colors text-sm flex-shrink-0">›</span>
                   </div>
