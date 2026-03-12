@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { getOpenTrades, getLatestIvRanks } from '@/lib/supabase'
 import { IvRankGauge } from '@/components/IvRankGauge'
+import { MaxLossSummary } from '@/components/MaxLossSummary'
+import { calculateTotalMaxLoss } from '@/lib/max-loss'
+import { DEFAULT_MULTIPLIER } from '@/lib/constants'
 
 export default async function Home() {
   const [openTrades, ivRanks] = await Promise.all([
@@ -10,11 +13,12 @@ export default async function Home() {
 
   const openCount = openTrades.length
   // Phase 1: 簡易含み損益（エントリー価格ベース）
-  // entry_price * quantity * 1000 の合計をポジション価値として表示
+  // entry_price * quantity * multiplier の合計をポジション価値として表示
   const totalPositionValue = openTrades.reduce(
-    (sum, t) => sum + t.entry_price * t.quantity * 1000,
+    (sum, t) => sum + t.entry_price * t.quantity * DEFAULT_MULTIPLIER,
     0
   )
+  const totalMaxLoss = calculateTotalMaxLoss(openTrades)
 
   return (
     <main className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 py-16">
@@ -56,7 +60,7 @@ export default async function Home() {
             <p className="text-sm text-slate-400">未決済ポジションはありません</p>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <p className="text-xs text-slate-400 mb-1">ポジション数</p>
                   <p className="text-2xl font-bold text-amber-400 tabular-nums">
@@ -71,6 +75,7 @@ export default async function Home() {
                     <span className="text-sm font-normal text-slate-500 ml-1">円</span>
                   </p>
                 </div>
+                <MaxLossSummary totalMaxLoss={totalMaxLoss} />
               </div>
               <div className="space-y-2">
                 {openTrades.map((trade) => (
