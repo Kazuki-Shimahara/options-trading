@@ -24,6 +24,8 @@ export interface Trade {
   entry_gamma: number | null
   entry_theta: number | null
   entry_vega: number | null
+  entry_iv_rank: number | null
+  entry_iv_hv_ratio: number | null
 }
 
 export type OptionType = 'call' | 'put'

@@ -1,19 +1,24 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import type { Trade } from '@/types/database'
+import type { Trade, IvHistory } from '@/types/database'
 import {
   DEFEAT_TAG_CATEGORIES,
   MARKET_ENV_AXES,
   aggregateDefeatTags,
   aggregateMarketEnvTags,
 } from '@/lib/tags'
+import { buildSkewTimeSeries } from '@/lib/iv-calculations'
+import VolatilitySkewChart from '@/components/VolatilitySkewChart'
+import { buildPnlChartData } from '@/lib/pnl-chart-data'
+import { PnlChart } from '@/components/PnlChart'
+import IvRankAnalysis from '@/components/IvRankAnalysis'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const { data, error } = await supabase
     .from('trades')
     .select('*')
     .eq('status', 'closed')
-    .order('trade_date', { ascending: false })
+    .order('exit_date', { ascending: true })
 
   if (error) {
     console.error('Failed to fetch trades:', error)
@@ -22,8 +27,30 @@ async function getClosedTrades(): Promise<Trade[]> {
   return (data ?? []) as Trade[]
 }
 
+async function getIvHistory(): Promise<IvHistory[]> {
+  try {
+    const { data, error } = await supabase
+      .from('iv_history')
+      .select('*')
+      .order('recorded_at', { ascending: true })
+
+    if (error) {
+      console.error('Failed to fetch iv_history:', error)
+      return []
+    }
+    return (data ?? []) as IvHistory[]
+  } catch {
+    return []
+  }
+}
+
 export default async function AnalyticsPage() {
-  const trades = await getClosedTrades()
+  const [trades, ivHistory] = await Promise.all([
+    getClosedTrades(),
+    getIvHistory(),
+  ])
+  const chartData = buildPnlChartData(trades)
+  const skewTimeSeries = buildSkewTimeSeries(ivHistory)
   const defeatAgg = aggregateDefeatTags(trades)
   const marketEnvAgg = aggregateMarketEnvTags(trades)
 
@@ -45,7 +72,7 @@ export default async function AnalyticsPage() {
           &larr; ホーム
         </Link>
         <h1 className="text-2xl font-bold text-slate-100 mb-2">分析ダッシュボード</h1>
-        <p className="text-slate-500 mb-8">敗因タグ・市場環境タグの集計</p>
+        <p className="text-slate-500 mb-8">トレード分析・敗因タグ・市場環境タグの集計</p>
 
         {/* サマリー */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
@@ -66,6 +93,19 @@ export default async function AnalyticsPage() {
             <div className="text-2xl font-bold text-slate-100">{winRate}%</div>
           </div>
         </div>
+
+        <PnlChart data={chartData} />
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
+            勝率 × IVランク相関分析
+          </h2>
+          <IvRankAnalysis trades={trades} />
+        </section>
+
+        <section className="mb-8">
+          <VolatilitySkewChart data={skewTimeSeries} />
+        </section>
 
         {totalTrades === 0 ? (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
