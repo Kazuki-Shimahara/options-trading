@@ -21,37 +21,42 @@ function formatYen(value: number): string {
   return value.toLocaleString()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const pnlFormatter = (value: any) => [`${Number(value).toLocaleString()}円`, '累計損益']
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const dailyFormatter = (value: any) => [`${Number(value).toLocaleString()}円`, '日次損益']
+
 export function PnlChart({ data }: { data: PnlChartDataPoint[] }) {
   if (data.length === 0) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-        <p className="text-slate-400">決済済み取引がありません</p>
+      <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-12 text-center">
+        <p className="text-[#555]">決済済み取引がありません</p>
       </div>
     )
   }
 
   return (
-    <div data-testid="pnl-chart-container" className="space-y-8">
+    <div data-testid="pnl-chart-container" className="space-y-6 mb-6">
       <section>
-        <h2 className="text-lg font-semibold text-slate-100 mb-4">累計損益推移</h2>
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <h2 className="text-sm font-semibold text-white mb-3">累計損益推移</h2>
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatYen} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
+              <XAxis dataKey="date" stroke="#555" fontSize={11} />
+              <YAxis stroke="#555" fontSize={11} tickFormatter={formatYen} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                labelStyle={{ color: '#e2e8f0' }}
-                formatter={(value: number) => [`${value.toLocaleString()}円`, '累計損益']}
+                contentStyle={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '8px' }}
+                labelStyle={{ color: '#ccc' }}
+                formatter={pnlFormatter}
               />
-              <ReferenceLine y={0} stroke="#475569" />
+              <ReferenceLine y={0} stroke="#333" />
               <Line
                 type="monotone"
                 dataKey="cumulative"
-                stroke="#38bdf8"
+                stroke="#00d4aa"
                 strokeWidth={2}
-                dot={{ fill: '#38bdf8', r: 3 }}
+                dot={{ fill: '#00d4aa', r: 3 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -59,22 +64,22 @@ export function PnlChart({ data }: { data: PnlChartDataPoint[] }) {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-slate-100 mb-4">日次損益</h2>
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+        <h2 className="text-sm font-semibold text-white mb-3">日次損益</h2>
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={formatYen} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e1e1e" />
+              <XAxis dataKey="date" stroke="#555" fontSize={11} />
+              <YAxis stroke="#555" fontSize={11} tickFormatter={formatYen} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                labelStyle={{ color: '#e2e8f0' }}
-                formatter={(value: number) => [`${value.toLocaleString()}円`, '日次損益']}
+                contentStyle={{ backgroundColor: '#111', border: '1px solid #2a2a2a', borderRadius: '8px' }}
+                labelStyle={{ color: '#ccc' }}
+                formatter={dailyFormatter}
               />
-              <ReferenceLine y={0} stroke="#475569" />
+              <ReferenceLine y={0} stroke="#333" />
               <Bar
                 dataKey="daily"
-                fill="#38bdf8"
+                fill="#00d4aa"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

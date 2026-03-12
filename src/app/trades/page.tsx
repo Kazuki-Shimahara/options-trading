@@ -26,24 +26,24 @@ export default async function TradesPage() {
   const winRate = closedTrades.length > 0 ? Math.round((winCount / closedTrades.length) * 100) : null
 
   return (
-    <main className="min-h-[calc(100vh-3.5rem)] px-4 py-8">
+    <main className="min-h-screen px-4 pt-2 pb-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-white">売買履歴</h1>
+        <div className="flex items-center justify-between py-4">
+          <h1 className="text-lg font-bold text-white">売買履歴</h1>
           <div className="flex items-center gap-2">
             {trades.length > 0 && (
               <a
                 href="/api/trades/export"
                 download="trades.csv"
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-xl transition-colors"
+                className="px-3 py-1.5 bg-[#1a1a1a] hover:bg-[#222] text-[#888] text-xs font-medium rounded-lg border border-[#2a2a2a] transition-colors"
               >
-                CSVエクスポート
+                CSV
               </a>
             )}
             <Link
               href="/trades/new"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors"
+              className="px-3 py-1.5 bg-[#00d4aa] hover:bg-[#00c49a] text-black text-xs font-medium rounded-lg transition-colors"
             >
               + 新規記録
             </Link>
@@ -52,28 +52,28 @@ export default async function TradesPage() {
 
         {/* Stats */}
         {trades.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <p className="text-xs text-slate-300 mb-1">累計損益</p>
-              <p className={`text-xl font-bold tabular-nums ${totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3">
+              <p className="text-[10px] text-[#888] mb-0.5">累計損益</p>
+              <p className={`text-lg font-bold tabular-nums ${totalPnl >= 0 ? 'text-[#00d4aa]' : 'text-[#ff6b6b]'}`}>
                 {totalPnl >= 0 ? '+' : ''}{totalPnl.toLocaleString()}
-                <span className="text-sm font-normal text-slate-500 ml-1">円</span>
+                <span className="text-[10px] font-normal text-[#555] ml-0.5">円</span>
               </p>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <p className="text-xs text-slate-300 mb-1">勝率</p>
-              <p className="text-xl font-bold text-slate-100">
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3">
+              <p className="text-[10px] text-[#888] mb-0.5">勝率</p>
+              <p className="text-lg font-bold text-white">
                 {winRate !== null ? `${winRate}%` : '—'}
                 {winRate !== null && (
-                  <span className="text-sm font-normal text-slate-500 ml-1">{winCount}/{closedTrades.length}勝</span>
+                  <span className="text-[10px] font-normal text-[#555] ml-0.5">{winCount}/{closedTrades.length}勝</span>
                 )}
               </p>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <p className="text-xs text-slate-300 mb-1">未決済</p>
-              <p className="text-xl font-bold text-amber-400">
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3">
+              <p className="text-[10px] text-[#888] mb-0.5">未決済</p>
+              <p className="text-lg font-bold text-[#f0b429]">
                 {openCount}
-                <span className="text-sm font-normal text-slate-500 ml-1">ポジション</span>
+                <span className="text-[10px] font-normal text-[#555] ml-0.5">件</span>
               </p>
             </div>
           </div>
@@ -81,31 +81,30 @@ export default async function TradesPage() {
 
         {/* List */}
         {trades.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-16 text-center">
-            <p className="text-4xl mb-4">📋</p>
-            <p className="text-slate-400 mb-6">まだ取引の記録がありません</p>
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-12 text-center">
+            <p className="text-[#555] mb-4">まだ取引の記録がありません</p>
             <Link
               href="/trades/new"
-              className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors"
+              className="inline-block px-4 py-2 bg-[#00d4aa] hover:bg-[#00c49a] text-black text-sm font-medium rounded-lg transition-colors"
             >
               最初の取引を記録する
             </Link>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {trades.map((trade) => (
               <Link
                 key={trade.id}
                 href={`/trades/${trade.id}`}
-                className="group flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 rounded-xl px-4 py-3.5 transition-all duration-150"
+                className="group flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 bg-[#111] border border-[#1e1e1e] hover:border-[#2a2a2a] hover:bg-[#1a1a1a] rounded-lg px-3 py-3 transition-all"
               >
                 {/* Mobile: top row with badge + PnL */}
                 <div className="flex items-center justify-between sm:contents">
                   {/* Type Badge */}
-                  <div className={`flex-shrink-0 w-14 text-center text-xs font-bold py-1 rounded-lg ${
+                  <div className={`flex-shrink-0 w-14 text-center text-[10px] font-bold py-1 rounded ${
                     trade.trade_type === 'call'
-                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                      : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                      ? 'bg-[#00d4aa]/10 text-[#00d4aa] border border-[#00d4aa]/20'
+                      : 'bg-[#ff6b6b]/10 text-[#ff6b6b] border border-[#ff6b6b]/20'
                   }`}>
                     {trade.trade_type.toUpperCase()}
                   </div>
@@ -116,17 +115,17 @@ export default async function TradesPage() {
                       <span className="text-sm font-medium text-white">
                         {trade.strike_price.toLocaleString()}円
                       </span>
-                      <span className="text-xs text-slate-400">×{trade.quantity}枚</span>
+                      <span className="text-xs text-[#666]">x{trade.quantity}枚</span>
                       {trade.iv_at_entry !== null && (
-                        <span className="text-xs text-slate-400">IV {trade.iv_at_entry}%</span>
+                        <span className="text-xs text-[#00d4aa]/70">IV {trade.iv_at_entry}%</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-slate-300">{trade.trade_date}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      <span className="text-xs text-[#888]">{trade.trade_date}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                         trade.status === 'open'
-                          ? 'text-amber-400 bg-amber-500/10'
-                          : 'text-slate-500 bg-slate-800'
+                          ? 'text-[#f0b429] bg-[#f0b429]/10'
+                          : 'text-[#555] bg-[#1a1a1a]'
                       }`}>
                         {trade.status === 'open' ? '未決済' : '決済済'}
                       </span>
@@ -137,19 +136,19 @@ export default async function TradesPage() {
                   <div className="flex-shrink-0 text-right flex items-center gap-2">
                     {trade.pnl !== null ? (
                       <span className={`text-sm font-semibold tabular-nums ${
-                        trade.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
+                        trade.pnl >= 0 ? 'text-[#00d4aa]' : 'text-[#ff6b6b]'
                       }`}>
                         {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toLocaleString()}円
                       </span>
                     ) : (
                       <div className="flex flex-col items-end">
-                        <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
-                        <span className="text-xs text-red-400/80 tabular-nums">
+                        <span className="text-xs text-[#888]">@ {trade.entry_price}</span>
+                        <span className="text-[10px] text-[#ff6b6b]/70 tabular-nums">
                           最大損失 {calculateMaxLoss(trade).toLocaleString()}円
                         </span>
                       </div>
                     )}
-                    <span className="text-slate-700 group-hover:text-slate-500 transition-colors text-sm flex-shrink-0">›</span>
+                    <span className="text-[#333] group-hover:text-[#555] transition-colors text-sm flex-shrink-0">›</span>
                   </div>
                 </div>
 
@@ -159,15 +158,15 @@ export default async function TradesPage() {
                     <span className="text-sm font-medium text-white">
                       {trade.strike_price.toLocaleString()}円
                     </span>
-                    <span className="text-xs text-slate-400">×{trade.quantity}枚</span>
+                    <span className="text-xs text-[#666]">x{trade.quantity}枚</span>
                     {trade.iv_at_entry !== null && (
-                      <span className="text-xs text-slate-400">IV {trade.iv_at_entry}%</span>
+                      <span className="text-xs text-[#00d4aa]/70">IV {trade.iv_at_entry}%</span>
                     )}
-                    <span className="text-xs text-slate-300">{trade.trade_date}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    <span className="text-xs text-[#888]">{trade.trade_date}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                       trade.status === 'open'
-                        ? 'text-amber-400 bg-amber-500/10'
-                        : 'text-slate-500 bg-slate-800'
+                        ? 'text-[#f0b429] bg-[#f0b429]/10'
+                        : 'text-[#555] bg-[#1a1a1a]'
                     }`}>
                       {trade.status === 'open' ? '未決済' : '決済済'}
                     </span>

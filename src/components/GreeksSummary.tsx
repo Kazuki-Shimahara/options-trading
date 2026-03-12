@@ -17,20 +17,19 @@ export function GreeksSummary({ greeks, deltaNeutral }: GreeksSummaryProps) {
   ]
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-      <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-purple-400" />
+    <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
+      <h2 className="text-xs font-medium text-[#00d4aa] mb-3 tracking-wider">
         ポートフォリオ Greeks
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
         {greeksItems.map((item) => (
           <div key={item.key}>
-            <p className="text-xs text-slate-400 mb-1">{item.label}</p>
-            <p className="text-lg font-bold text-slate-100 tabular-nums">
+            <p className="text-[10px] text-[#00d4aa]/70 mb-0.5">{item.label}</p>
+            <p className="text-lg font-bold text-white tabular-nums font-mono">
               {item.value.toFixed(item.decimals)}
               {item.suffix && (
-                <span className="text-xs font-normal text-slate-500 ml-0.5">
+                <span className="text-[10px] font-normal text-[#555] ml-0.5">
                   {item.suffix}
                 </span>
               )}
@@ -40,22 +39,22 @@ export function GreeksSummary({ greeks, deltaNeutral }: GreeksSummaryProps) {
       </div>
 
       {/* デルタ中立乖離度 */}
-      <div className={`rounded-xl px-4 py-3 border ${
+      <div className={`rounded-lg px-3 py-2.5 border ${
         deltaNeutral.isWarning
-          ? 'bg-red-500/10 border-red-500/30'
-          : 'bg-slate-800/50 border-slate-700/50'
+          ? 'bg-[#ff6b6b]/10 border-[#ff6b6b]/30'
+          : 'bg-[#0a0a0a] border-[#1e1e1e]'
       }`}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-slate-400 mb-0.5">デルタ中立乖離度</p>
-            <p className={`text-xl font-bold tabular-nums ${
-              deltaNeutral.isWarning ? 'text-red-400' : 'text-slate-100'
+            <p className="text-[10px] text-[#888] mb-0.5">デルタ中立乖離度</p>
+            <p className={`text-lg font-bold tabular-nums font-mono ${
+              deltaNeutral.isWarning ? 'text-[#ff6b6b]' : 'text-white'
             }`}>
               {deltaNeutral.deviation.toFixed(4)}
             </p>
           </div>
           {deltaNeutral.isWarning && (
-            <span className="text-xs font-medium px-2 py-1 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30">
+            <span className="text-[10px] font-medium px-2 py-1 rounded bg-[#ff6b6b]/20 text-[#ff6b6b] border border-[#ff6b6b]/30">
               閾値超過
             </span>
           )}
