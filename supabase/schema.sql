@@ -44,10 +44,22 @@ create index if not exists trades_trade_date_idx on trades (trade_date desc);
 create index if not exists trades_status_idx on trades (status);
 create index if not exists trades_user_id_idx on trades (user_id);
 
--- RLS（Phase 4で有効化）
+-- RLS
 alter table trades enable row level security;
--- Phase 4でのポリシー追加例:
--- create policy "Users can only see own trades" on trades for select using (auth.uid() = user_id);
+
+-- trades RLSポリシー: ユーザーは自分のトレードのみ操作可能
+create policy "Users can select own trades" on trades
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own trades" on trades
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own trades" on trades
+  for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own trades" on trades
+  for delete using (auth.uid() = user_id);
 
 -- =============================================
 -- J-Quants API トークン管理テーブル
@@ -92,8 +104,12 @@ create index if not exists iv_history_recorded_at_idx on iv_history (recorded_at
 create index if not exists iv_history_strike_expiry_idx on iv_history (strike_price, expiry_date);
 create index if not exists iv_history_option_type_idx on iv_history (option_type);
 
--- RLS（Phase 4で有効化）
+-- RLS
 alter table iv_history enable row level security;
+
+-- iv_history RLSポリシー: 全ユーザーが参照可能（書き込みはサービスロールのみ）
+create policy "Anyone can select iv_history" on iv_history
+  for select using (true);
 
 -- =============================================
 -- Web Push購読管理テーブル
@@ -134,5 +150,16 @@ create trigger user_preferences_updated_at
 -- インデックス
 create index if not exists user_preferences_user_id_idx on user_preferences (user_id);
 
--- RLS（Phase 4で有効化）
+-- RLS
 alter table user_preferences enable row level security;
+
+-- user_preferences RLSポリシー: ユーザーは自分の設定のみ操作可能
+create policy "Users can select own preferences" on user_preferences
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own preferences" on user_preferences
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own preferences" on user_preferences
+  for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
