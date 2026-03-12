@@ -8,20 +8,20 @@ const categoryConfig: Record<
   EventCategory,
   { color: string; dot: string; label: string }
 > = {
-  sq: { color: 'text-red-400', dot: 'bg-red-400', label: 'SQ日' },
-  fomc: { color: 'text-blue-400', dot: 'bg-blue-400', label: 'FOMC' },
-  fomc_press: { color: 'text-blue-300', dot: 'bg-blue-300', label: 'FRB記者会見' },
-  boj: { color: 'text-purple-400', dot: 'bg-purple-400', label: '日銀会合' },
-  boj_press: { color: 'text-purple-300', dot: 'bg-purple-300', label: '日銀記者会見' },
-  ecb_press: { color: 'text-pink-400', dot: 'bg-pink-400', label: 'ECB記者会見' },
-  employment: { color: 'text-green-400', dot: 'bg-green-400', label: '米雇用統計' },
-  cpi: { color: 'text-yellow-400', dot: 'bg-yellow-400', label: 'CPI' },
-  gdp: { color: 'text-cyan-400', dot: 'bg-cyan-400', label: 'GDP' },
-  pce: { color: 'text-amber-400', dot: 'bg-amber-400', label: 'PCE' },
-  ism: { color: 'text-teal-400', dot: 'bg-teal-400', label: 'ISM' },
-  tankan: { color: 'text-indigo-400', dot: 'bg-indigo-400', label: '短観' },
-  earnings: { color: 'text-orange-400', dot: 'bg-orange-400', label: '決算' },
-  other: { color: 'text-slate-400', dot: 'bg-slate-400', label: 'その他' },
+  sq: { color: 'text-[#ff6b6b]', dot: 'bg-[#ff6b6b]', label: 'SQ日' },
+  fomc: { color: 'text-[#4da6ff]', dot: 'bg-[#4da6ff]', label: 'FOMC' },
+  fomc_press: { color: 'text-[#6db8ff]', dot: 'bg-[#6db8ff]', label: 'FRB記者会見' },
+  boj: { color: 'text-[#b48cff]', dot: 'bg-[#b48cff]', label: '日銀会合' },
+  boj_press: { color: 'text-[#c9a5ff]', dot: 'bg-[#c9a5ff]', label: '日銀記者会見' },
+  ecb_press: { color: 'text-[#ff7eb3]', dot: 'bg-[#ff7eb3]', label: 'ECB記者会見' },
+  employment: { color: 'text-[#00d4aa]', dot: 'bg-[#00d4aa]', label: '米雇用統計' },
+  cpi: { color: 'text-[#f0b429]', dot: 'bg-[#f0b429]', label: 'CPI' },
+  gdp: { color: 'text-[#00c4d4]', dot: 'bg-[#00c4d4]', label: 'GDP' },
+  pce: { color: 'text-[#e0a030]', dot: 'bg-[#e0a030]', label: 'PCE' },
+  ism: { color: 'text-[#20b2aa]', dot: 'bg-[#20b2aa]', label: 'ISM' },
+  tankan: { color: 'text-[#7b68ee]', dot: 'bg-[#7b68ee]', label: '短観' },
+  earnings: { color: 'text-[#ff8c42]', dot: 'bg-[#ff8c42]', label: '決算' },
+  other: { color: 'text-[#666]', dot: 'bg-[#666]', label: 'その他' },
 }
 
 const weekDays = ['日', '月', '火', '水', '木', '金', '土']
@@ -29,12 +29,11 @@ const weekDays = ['日', '月', '火', '水', '木', '金', '土']
 export default function CalendarPage() {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
-  const [month, setMonth] = useState(today.getMonth() + 1) // 1-based
+  const [month, setMonth] = useState(today.getMonth() + 1)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const events = useMemo(() => getEventsForMonth(year, month), [year, month])
 
-  // Build calendar grid
   const calendarDays = useMemo(() => {
     const firstDay = new Date(year, month - 1, 1)
     const lastDay = new Date(year, month, 0)
@@ -42,21 +41,18 @@ export default function CalendarPage() {
     const daysInMonth = lastDay.getDate()
 
     const days: (number | null)[] = []
-    // Leading blanks
     for (let i = 0; i < startDayOfWeek; i++) {
       days.push(null)
     }
     for (let d = 1; d <= daysInMonth; d++) {
       days.push(d)
     }
-    // Trailing blanks to fill 6 rows
     while (days.length < 42) {
       days.push(null)
     }
     return days
   }, [year, month])
 
-  // Events grouped by day
   const eventsByDay = useMemo(() => {
     const map = new Map<number, CalendarEvent[]>()
     events.forEach((e) => {
@@ -67,9 +63,8 @@ export default function CalendarPage() {
     return map
   }, [events])
 
-  // Selected date events
   const selectedEvents = useMemo(() => {
-    if (!selectedDate) return events // Show all month events when no date selected
+    if (!selectedDate) return events
     return events.filter(
       (e) => e.date.getDate() === selectedDate.getDate()
     )
@@ -113,46 +108,47 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-3.5rem)] px-4 py-8">
+    <main className="min-h-screen px-4 pt-2 pb-4">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-300 mb-6 transition-colors"
-        >
-          &larr; ホーム
-        </Link>
-
-        <h1 className="text-2xl font-bold text-slate-100 mb-6">
-          イベントカレンダー
-        </h1>
+        {/* Header */}
+        <div className="flex items-center justify-between py-4">
+          <Link
+            href="/"
+            className="text-[#666] hover:text-[#888] text-sm transition-colors"
+          >
+            ← 戻る
+          </Link>
+          <h1 className="text-lg font-bold text-white">イベントカレンダー</h1>
+          <div className="w-10" />
+        </div>
 
         {/* Month navigation */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <button
             onClick={prevMonth}
-            className="px-3 py-1.5 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sm text-[#888] hover:text-white hover:bg-[#1a1a1a] rounded-lg transition-colors"
           >
-            &larr; 前月
+            ← 前月
           </button>
-          <h2 className="text-lg font-semibold text-slate-100">
+          <h2 className="text-base font-semibold text-white">
             {year}年 {month}月
           </h2>
           <button
             onClick={nextMonth}
-            className="px-3 py-1.5 text-sm text-slate-200 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sm text-[#888] hover:text-white hover:bg-[#1a1a1a] rounded-lg transition-colors"
           >
-            翌月 &rarr;
+            翌月 →
           </button>
         </div>
 
         {/* Category legend */}
-        <div className="flex flex-wrap gap-3 mb-4">
+        <div className="flex flex-wrap gap-2 mb-3">
           {(['sq', 'fomc', 'fomc_press', 'boj', 'boj_press', 'ecb_press', 'employment', 'cpi', 'gdp', 'pce', 'ism', 'tankan', 'earnings'] as EventCategory[]).map((cat) => (
-            <div key={cat} className="flex items-center gap-1.5">
+            <div key={cat} className="flex items-center gap-1">
               <span
-                className={`w-2.5 h-2.5 rounded-full ${categoryConfig[cat].dot}`}
+                className={`w-2 h-2 rounded-full ${categoryConfig[cat].dot}`}
               />
-              <span className="text-xs text-slate-400">
+              <span className="text-[10px] text-[#666]">
                 {categoryConfig[cat].label}
               </span>
             </div>
@@ -160,14 +156,13 @@ export default function CalendarPage() {
         </div>
 
         {/* Calendar grid */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mb-6">
-          {/* Weekday headers */}
-          <div className="grid grid-cols-7 mb-2">
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3 mb-4">
+          <div className="grid grid-cols-7 mb-1">
             {weekDays.map((d, i) => (
               <div
                 key={d}
-                className={`text-center text-xs font-medium py-1 ${
-                  i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-slate-500'
+                className={`text-center text-[10px] font-medium py-1 ${
+                  i === 0 ? 'text-[#ff6b6b]' : i === 6 ? 'text-[#4da6ff]' : 'text-[#555]'
                 }`}
               >
                 {d}
@@ -175,23 +170,21 @@ export default function CalendarPage() {
             ))}
           </div>
 
-          {/* Day cells */}
           <div className="grid grid-cols-7">
             {calendarDays.map((day, idx) => {
               if (day === null) {
-                return <div key={`blank-${idx}`} className="h-14" />
+                return <div key={`blank-${idx}`} className="h-12" />
               }
 
               const dayEvents = eventsByDay.get(day) || []
               const dayOfWeek = new Date(year, month - 1, day).getDay()
               const todayClass = isToday(day)
-                ? 'ring-2 ring-blue-500'
+                ? 'ring-1 ring-[#00d4aa]'
                 : ''
               const selectedClass = isSelected(day)
-                ? 'bg-slate-700'
-                : 'hover:bg-slate-800'
+                ? 'bg-[#1a1a1a]'
+                : 'hover:bg-[#0a0a0a]'
 
-              // Unique categories for this day (for dots)
               const cats = [...new Set(dayEvents.map((e) => e.category))]
 
               return (
@@ -200,25 +193,25 @@ export default function CalendarPage() {
                   onClick={() =>
                     setSelectedDate(new Date(year, month - 1, day))
                   }
-                  className={`h-14 flex flex-col items-center justify-start pt-1.5 rounded-lg transition-colors ${todayClass} ${selectedClass}`}
+                  className={`h-12 flex flex-col items-center justify-start pt-1 rounded-lg transition-colors ${todayClass} ${selectedClass}`}
                 >
                   <span
-                    className={`text-sm ${
+                    className={`text-xs ${
                       dayOfWeek === 0
-                        ? 'text-red-400'
+                        ? 'text-[#ff6b6b]'
                         : dayOfWeek === 6
-                        ? 'text-blue-400'
-                        : 'text-slate-200'
+                        ? 'text-[#4da6ff]'
+                        : 'text-[#ccc]'
                     }`}
                   >
                     {day}
                   </span>
                   {cats.length > 0 && (
-                    <div className="flex gap-0.5 mt-1">
+                    <div className="flex gap-0.5 mt-0.5">
                       {cats.slice(0, 3).map((cat) => (
                         <span
                           key={cat}
-                          className={`w-1.5 h-1.5 rounded-full ${categoryConfig[cat].dot}`}
+                          className={`w-1 h-1 rounded-full ${categoryConfig[cat].dot}`}
                         />
                       ))}
                     </div>
@@ -230,41 +223,41 @@ export default function CalendarPage() {
         </div>
 
         {/* Event list */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-          <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest mb-4">
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
+          <h2 className="text-[10px] font-medium text-[#00d4aa]/70 uppercase tracking-wider mb-3">
             {selectedDate
               ? `${selectedDate.getMonth() + 1}/${selectedDate.getDate()} のイベント`
               : `${month}月のイベント`}
           </h2>
 
           {selectedEvents.length === 0 ? (
-            <p className="text-sm text-slate-500">イベントはありません</p>
+            <p className="text-sm text-[#555]">イベントはありません</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {selectedEvents.map((event) => (
                 <li
                   key={event.id}
-                  className="flex items-center gap-3 py-2 px-3 rounded-xl bg-slate-800/50"
+                  className="flex items-center gap-2.5 py-2 px-3 rounded-lg bg-[#0a0a0a] border border-[#1e1e1e]"
                 >
                   <span
-                    className={`w-2.5 h-2.5 rounded-full shrink-0 ${categoryConfig[event.category].dot}`}
+                    className={`w-2 h-2 rounded-full shrink-0 ${categoryConfig[event.category].dot}`}
                   />
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-medium ${categoryConfig[event.category].color}`}>
                       {event.title}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-[10px] text-[#555]">
                       {event.date.getMonth() + 1}/{event.date.getDate()}（
                       {weekDays[event.date.getDay()]}）
                     </p>
                   </div>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
+                    className={`text-[10px] px-1.5 py-0.5 rounded ${
                       event.importance === 'high'
-                        ? 'bg-red-500/20 text-red-400'
+                        ? 'bg-[#ff6b6b]/15 text-[#ff6b6b]'
                         : event.importance === 'medium'
-                        ? 'bg-yellow-500/20 text-yellow-400'
-                        : 'bg-slate-700 text-slate-400'
+                        ? 'bg-[#f0b429]/15 text-[#f0b429]'
+                        : 'bg-[#1a1a1a] text-[#555]'
                     }`}
                   >
                     {event.importance === 'high'

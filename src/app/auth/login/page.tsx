@@ -1,11 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/'
@@ -37,20 +45,22 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <span className="text-blue-400 text-3xl">◈</span>
-          <h1 className="text-2xl font-bold text-white mt-2">ログイン</h1>
-          <p className="text-sm text-slate-400 mt-1">NK225 Options</p>
+          <div className="w-12 h-12 bg-[#00d4aa] rounded-xl flex items-center justify-center mx-auto mb-3">
+            <span className="text-black text-xl font-bold">N</span>
+          </div>
+          <h1 className="text-xl font-bold text-white mt-2">ログイン</h1>
+          <p className="text-xs text-[#666] mt-1">NK225 Options</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400">
+            <div className="bg-[#ff6b6b]/10 border border-[#ff6b6b]/20 rounded-lg px-3 py-2.5 text-sm text-[#ff6b6b]">
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="email" className="block text-[10px] font-medium text-[#00d4aa]/70 mb-1 uppercase tracking-wider">
               メールアドレス
             </label>
             <input
@@ -59,13 +69,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 bg-[#111] border border-[#2a2a2a] rounded-lg text-white placeholder-[#444] focus:outline-none focus:ring-1 focus:ring-[#00d4aa] focus:border-[#00d4aa]"
               placeholder="email@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
+            <label htmlFor="password" className="block text-[10px] font-medium text-[#00d4aa]/70 mb-1 uppercase tracking-wider">
               パスワード
             </label>
             <input
@@ -75,7 +85,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 bg-[#111] border border-[#2a2a2a] rounded-lg text-white placeholder-[#444] focus:outline-none focus:ring-1 focus:ring-[#00d4aa] focus:border-[#00d4aa]"
               placeholder="6文字以上"
             />
           </div>
@@ -83,15 +93,15 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+            className="w-full py-2.5 bg-[#00d4aa] hover:bg-[#00c49a] disabled:opacity-50 disabled:cursor-not-allowed text-black font-medium rounded-lg transition-colors"
           >
             {loading ? 'ログイン中...' : 'ログイン'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-400">
+        <p className="mt-6 text-center text-xs text-[#555]">
           アカウントをお持ちでない方は{' '}
-          <Link href="/auth/signup" className="text-blue-400 hover:text-blue-300">
+          <Link href="/auth/signup" className="text-[#00d4aa] hover:opacity-80">
             新規登録
           </Link>
         </p>

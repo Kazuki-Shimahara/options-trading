@@ -9,9 +9,9 @@ import type { BSInputs } from '@/lib/black-scholes'
 import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
 
 const inputClass =
-  'w-full bg-slate-800 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-sm placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
+  'w-full bg-[#0a0a0a] border border-[#2a2a2a] text-white rounded-lg px-3 py-2.5 text-sm placeholder-[#444] focus:outline-none focus:ring-1 focus:ring-[#00d4aa] focus:border-[#00d4aa] transition-colors'
 
-const labelClass = 'block text-xs font-medium text-slate-200 mb-1.5'
+const labelClass = 'block text-[10px] font-medium text-[#00d4aa]/80 mb-1 tracking-wider uppercase'
 
 export default function NewTradePage() {
   const router = useRouter()
@@ -19,18 +19,15 @@ export default function NewTradePage() {
   const [error, setError] = useState<string | null>(null)
   const [tradeType, setTradeType] = useState<'call' | 'put'>('call')
 
-  // タグ選択
   const [selectedDefeatTags, setSelectedDefeatTags] = useState<string[]>([])
   const [selectedMarketEnvTags, setSelectedMarketEnvTags] = useState<string[]>([])
 
-  // Greeks計算用の入力状態
   const [spotPrice, setSpotPrice] = useState<string>('')
   const [strikePrice, setStrikePrice] = useState<string>('')
   const [ivAtEntry, setIvAtEntry] = useState<string>('')
   const [expiryDate, setExpiryDate] = useState<string>('')
   const [greeks, setGreeks] = useState<Greeks | null>(null)
 
-  // Greeks自動計算
   const computeGreeks = useCallback(() => {
     const spot = parseFloat(spotPrice)
     const strike = parseFloat(strikePrice)
@@ -41,7 +38,6 @@ export default function NewTradePage() {
       return
     }
 
-    // 満期までの年数を計算
     const now = new Date()
     const expiry = new Date(expiryDate)
     const diffMs = expiry.getTime() - now.getTime()
@@ -56,7 +52,7 @@ export default function NewTradePage() {
       spot,
       strike,
       timeToExpiry,
-      volatility: iv / 100, // %から小数に変換
+      volatility: iv / 100,
       riskFreeRate: 0.001,
       dividendYield: 0.02,
       optionType: tradeType,
@@ -133,45 +129,44 @@ export default function NewTradePage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-3.5rem)] px-4 py-8">
+    <main className="min-h-screen px-4 pt-2 pb-4">
       <div className="max-w-xl mx-auto">
-        <Link href="/trades" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-300 mb-6 transition-colors">
-          ← 売買履歴
-        </Link>
-        <h1 className="text-2xl font-bold text-slate-100 mb-8">取引を記録</h1>
+        {/* Header */}
+        <div className="flex items-center justify-between py-4">
+          <Link href="/trades" className="text-[#666] hover:text-[#888] text-sm transition-colors">
+            ← 戻る
+          </Link>
+          <h1 className="text-lg font-bold text-white">新規記録</h1>
+          <div className="w-10" />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Section: 基本情報 */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">基本情報</h2>
-
-            {/* CALL / PUT toggle */}
-            <div>
-              <label className={labelClass}>種別 *</label>
-              <div className="flex gap-2">
-                {(['call', 'put'] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTradeType(t)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                      tradeType === t
-                        ? t === 'call'
-                          ? 'bg-blue-600 text-white border border-blue-500'
-                          : 'bg-orange-600 text-white border border-orange-500'
-                        : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
-                    }`}
-                  >
-                    {t.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-              <input type="hidden" name="trade_type" value={tradeType} />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* CALL / PUT toggle */}
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
+            <label className={labelClass}>種別</label>
+            <div className="flex gap-2">
+              {(['call', 'put'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTradeType(t)}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    tradeType === t
+                      ? t === 'call'
+                        ? 'bg-[#00d4aa] text-black'
+                        : 'bg-[#ff6b6b] text-white'
+                      : 'bg-[#1a1a1a] text-[#555] border border-[#2a2a2a] hover:border-[#333]'
+                  }`}
+                >
+                  {t.toUpperCase()}
+                </button>
+              ))}
             </div>
+            <input type="hidden" name="trade_type" value={tradeType} />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 mt-4">
               <div>
-                <label className={labelClass}>取引日 *</label>
+                <label className={labelClass}>取引日</label>
                 <input
                   name="trade_date"
                   type="date"
@@ -181,7 +176,7 @@ export default function NewTradePage() {
                 />
               </div>
               <div>
-                <label className={labelClass}>限月（SQ日）*</label>
+                <label className={labelClass}>限月（SQ日）</label>
                 <input
                   name="expiry_date"
                   type="date"
@@ -193,9 +188,9 @@ export default function NewTradePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 mt-3">
               <div>
-                <label className={labelClass}>権利行使価格 *</label>
+                <label className={labelClass}>権利行使価格</label>
                 <input
                   name="strike_price"
                   type="number"
@@ -207,7 +202,7 @@ export default function NewTradePage() {
                 />
               </div>
               <div>
-                <label className={labelClass}>枚数 *</label>
+                <label className={labelClass}>枚数</label>
                 <input
                   name="quantity"
                   type="number"
@@ -220,12 +215,12 @@ export default function NewTradePage() {
             </div>
           </div>
 
-          {/* Section: 価格 */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">価格</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Price Section */}
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+            <h2 className={labelClass}>価格</h2>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>購入価格（プレミアム）*</label>
+                <label className={labelClass}>購入価格（プレミアム）</label>
                 <input
                   name="entry_price"
                   type="number"
@@ -248,7 +243,7 @@ export default function NewTradePage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>先物価格（原資産）</label>
                 <input
@@ -272,7 +267,7 @@ export default function NewTradePage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>決済日（任意）</label>
                 <input
@@ -284,60 +279,47 @@ export default function NewTradePage() {
             </div>
           </div>
 
-          {/* Section: Greeks（自動計算） */}
+          {/* Greeks */}
           {greeks && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">
-                Greeks（BS Merton版・自動計算）
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-                  <div className="text-xs text-slate-500 mb-1">Delta</div>
-                  <div className="text-lg font-mono font-semibold text-slate-100">
-                    {greeks.delta >= 0 ? '+' : ''}{greeks.delta.toFixed(4)}
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
+              <h2 className={labelClass}>Greeks（自動計算）</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
+                {[
+                  { label: 'Delta(δ)', value: `${greeks.delta >= 0 ? '+' : ''}${greeks.delta.toFixed(4)}` },
+                  { label: 'Gamma(γ)', value: greeks.gamma.toFixed(6) },
+                  { label: 'Theta(θ)', value: `${greeks.theta >= 0 ? '+' : ''}${greeks.theta.toFixed(2)}` },
+                  { label: 'Vega(κ)', value: greeks.vega.toFixed(2) },
+                ].map((g) => (
+                  <div key={g.label} className="bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg p-2.5 text-center">
+                    <div className="text-[10px] text-[#00d4aa]/70 mb-0.5">{g.label}</div>
+                    <div className="text-base font-mono font-semibold text-white">
+                      {g.value}
+                    </div>
                   </div>
-                </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-                  <div className="text-xs text-slate-500 mb-1">Gamma</div>
-                  <div className="text-lg font-mono font-semibold text-slate-100">
-                    {greeks.gamma.toFixed(6)}
-                  </div>
-                </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-                  <div className="text-xs text-slate-500 mb-1">Theta</div>
-                  <div className="text-lg font-mono font-semibold text-slate-100">
-                    {greeks.theta >= 0 ? '+' : ''}{greeks.theta.toFixed(2)}
-                  </div>
-                </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-                  <div className="text-xs text-slate-500 mb-1">Vega</div>
-                  <div className="text-lg font-mono font-semibold text-slate-100">
-                    {greeks.vega.toFixed(2)}
-                  </div>
-                </div>
+                ))}
               </div>
-              <p className="text-xs text-slate-600">
-                r=0.1%, q=2.0% で計算。Theta は1日あたり、Vega は IV 1%変化あたりの値。
+              <p className="text-[10px] text-[#444] mt-2">
+                r=0.1%, q=2.0% で計算
               </p>
             </div>
           )}
 
-          {/* Section: 市場環境タグ */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">市場環境タグ</h2>
+          {/* Market Env Tags */}
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+            <h2 className={labelClass}>市場環境タグ</h2>
             {Object.entries(MARKET_ENV_AXES).map(([axis, config]) => (
               <div key={axis}>
-                <label className={labelClass}>{config.label}</label>
-                <div className="flex flex-wrap gap-2">
+                <label className="block text-[10px] text-[#888] mb-1">{config.label}</label>
+                <div className="flex flex-wrap gap-1.5">
                   {config.tags.map((tag) => (
                     <button
                       key={tag}
                       type="button"
                       onClick={() => toggleMarketEnvTag(axis, tag)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
                         selectedMarketEnvTags.includes(tag)
-                          ? 'bg-emerald-600 text-white border border-emerald-500'
-                          : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
+                          ? 'bg-[#00d4aa] text-black'
+                          : 'bg-[#1a1a1a] text-[#666] border border-[#2a2a2a] hover:border-[#333]'
                       }`}
                     >
                       {tag}
@@ -348,23 +330,23 @@ export default function NewTradePage() {
             ))}
           </div>
 
-          {/* Section: 敗因タグ */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">敗因タグ</h2>
-            <p className="text-xs text-slate-600">該当するものを複数選択できます</p>
+          {/* Defeat Tags */}
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+            <h2 className={labelClass}>敗因タグ</h2>
+            <p className="text-[10px] text-[#444]">該当するものを複数選択できます</p>
             {Object.entries(DEFEAT_TAG_CATEGORIES).map(([category, tags]) => (
               <div key={category}>
-                <label className={labelClass}>{category}</label>
-                <div className="flex flex-wrap gap-2">
+                <label className="block text-[10px] text-[#888] mb-1">{category}</label>
+                <div className="flex flex-wrap gap-1.5">
                   {tags.map((tag: DefeatTag) => (
                     <button
                       key={tag}
                       type="button"
                       onClick={() => toggleDefeatTag(tag)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
                         selectedDefeatTags.includes(tag)
-                          ? 'bg-red-600 text-white border border-red-500'
-                          : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600'
+                          ? 'bg-[#ff6b6b] text-white'
+                          : 'bg-[#1a1a1a] text-[#666] border border-[#2a2a2a] hover:border-[#333]'
                       }`}
                     >
                       {tag}
@@ -375,22 +357,19 @@ export default function NewTradePage() {
             ))}
           </div>
 
-          {/* Section: メモ */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-widest">メモ</h2>
-            <div>
-              <label className={labelClass}>エントリー理由</label>
-              <textarea
-                name="memo"
-                rows={3}
-                placeholder="なぜこのタイミングでエントリーしたか..."
-                className={`${inputClass} resize-none`}
-              />
-            </div>
+          {/* Memo */}
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
+            <h2 className={labelClass}>メモ</h2>
+            <textarea
+              name="memo"
+              rows={3}
+              placeholder="なぜこのタイミングでエントリーしたか..."
+              className={`${inputClass} resize-none`}
+            />
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl">
+            <div className="bg-[#ff6b6b]/10 border border-[#ff6b6b]/20 text-[#ff6b6b] text-sm p-3 rounded-lg">
               {error}
             </div>
           )}
@@ -398,7 +377,7 @@ export default function NewTradePage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
+            className="w-full py-3 bg-[#00d4aa] hover:bg-[#00c49a] disabled:opacity-50 text-black font-semibold rounded-lg transition-colors"
           >
             {loading ? '保存中...' : '記録する'}
           </button>

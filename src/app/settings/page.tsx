@@ -71,33 +71,36 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <main className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
-        <p className="text-slate-400">読み込み中...</p>
+      <main className="min-h-screen flex items-center justify-center">
+        <p className="text-[#555]">読み込み中...</p>
       </main>
     )
   }
 
   return (
-    <main className="min-h-[calc(100vh-3.5rem)] px-4 py-16">
+    <main className="min-h-screen px-4 pt-2 pb-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-8">通知設定</h1>
+        {/* Header */}
+        <div className="py-4">
+          <h1 className="text-lg font-bold text-white">メニュー</h1>
+        </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold text-slate-300 mb-4">
+        <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
+          <h2 className="text-[10px] font-medium text-[#00d4aa]/70 uppercase tracking-wider mb-3">
             取引スタイル
           </h2>
-          <p className="text-sm text-slate-400 mb-6">
+          <p className="text-xs text-[#666] mb-4">
             取引スタイルに応じてIVシグナル通知をフィルタリングします。
           </p>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {styleOptions.map((option) => (
               <label
                 key={option.value}
-                className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-150 ${
+                className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                   tradingStyle === option.value
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-slate-700 hover:border-slate-600 bg-slate-800/50'
+                    ? 'border-[#00d4aa] bg-[#00d4aa]/10'
+                    : 'border-[#2a2a2a] hover:border-[#333] bg-[#0a0a0a]'
                 }`}
               >
                 <input
@@ -106,13 +109,13 @@ export default function SettingsPage() {
                   value={option.value}
                   checked={tradingStyle === option.value}
                   onChange={() => setTradingStyle(option.value)}
-                  className="mt-1 accent-blue-500"
+                  className="mt-0.5 accent-[#00d4aa]"
                 />
                 <div>
                   <span className="text-sm font-medium text-white">
                     {option.label}
                   </span>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-[10px] text-[#666] mt-0.5">
                     {getFilterDescription(option.value)}
                   </p>
                 </div>
@@ -123,15 +126,15 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="mt-6 w-full px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
+            className="mt-4 w-full px-4 py-2.5 text-sm font-medium text-black bg-[#00d4aa] hover:bg-[#00c49a] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
           >
             {saving ? '保存中...' : '設定を保存'}
           </button>
 
           {message && (
             <p
-              className={`mt-4 text-sm text-center ${
-                message.includes('失敗') ? 'text-red-400' : 'text-emerald-400'
+              className={`mt-3 text-xs text-center ${
+                message.includes('失敗') ? 'text-[#ff6b6b]' : 'text-[#00d4aa]'
               }`}
             >
               {message}
