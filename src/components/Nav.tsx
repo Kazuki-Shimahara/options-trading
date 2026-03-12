@@ -1,6 +1,17 @@
 import Link from 'next/link'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import LogoutButton from './LogoutButton'
 
-export default function Nav() {
+export default async function Nav() {
+  let user = null
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // 認証エラー時はユーザーなしとして扱う
+  }
+
   return (
     <header className="fixed top-0 inset-x-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -39,6 +50,16 @@ export default function Nav() {
           >
             + 記録
           </Link>
+          {user ? (
+            <LogoutButton />
+          ) : (
+            <Link
+              href="/auth/login"
+              className="px-3 py-1.5 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              ログイン
+            </Link>
+          )}
         </nav>
       </div>
     </header>
