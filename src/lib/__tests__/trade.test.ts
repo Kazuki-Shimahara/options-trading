@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculatePnl } from '../trade'
+import { MULTIPLIER_MINI } from '../constants'
 
 describe('calculatePnl', () => {
   it('決済価格がある場合にPnLを計算する', () => {
@@ -25,5 +26,9 @@ describe('calculatePnl', () => {
 
   it('決済価格がundefinedの場合はnullを返す', () => {
     expect(calculatePnl(undefined, 150, 1)).toBeNull()
+  })
+
+  it('ミニオプション (multiplier=100) で計算する', () => {
+    expect(calculatePnl(200, 150, 2, MULTIPLIER_MINI)).toBe(10000) // (200-150)*2*100
   })
 })

@@ -4,6 +4,7 @@ import {
   calculateTotalMaxLoss,
   type PositionSide,
 } from '@/lib/max-loss'
+import { MULTIPLIER_MINI, MULTIPLIER_STANDARD } from '@/lib/constants'
 import type { Trade } from '@/types/database'
 
 function makeTrade(overrides: Partial<Trade> & { position_side?: PositionSide }): Trade & { position_side?: PositionSide } {
@@ -125,5 +126,40 @@ describe('calculateTotalMaxLoss', () => {
     const trades = [makeTrade({ entry_price: 300, quantity: 1 })]
     const result = calculateTotalMaxLoss(trades)
     expect(result).toBe(300 * 1 * 1000)
+  })
+})
+
+describe('ミニオプション対応 (multiplier=100)', () => {
+  it('買いポジション: ミニオプションの最大損失', () => {
+    const trade = makeTrade({ entry_price: 150, quantity: 1 })
+    const result = calculateMaxLoss(trade, 'buy', MULTIPLIER_MINI)
+    expect(result).toBe(150 * 1 * 100) // 15,000円
+  })
+
+  it('売りポジション: ミニオプションの最大損失', () => {
+    const trade = makeTrade({
+      trade_type: 'call',
+      strike_price: 39000,
+      quantity: 1,
+      entry_price: 150,
+    })
+    const result = calculateMaxLoss(trade, 'sell', MULTIPLIER_MINI)
+    expect(result).toBe(39000 * 0.1 * 1 * 100 - 150 * 1 * 100)
+  })
+
+  it('通常オプション(1000)とミニオプション(100)で10倍の差', () => {
+    const trade = makeTrade({ entry_price: 200, quantity: 1 })
+    const standard = calculateMaxLoss(trade, 'buy', MULTIPLIER_STANDARD)
+    const mini = calculateMaxLoss(trade, 'buy', MULTIPLIER_MINI)
+    expect(standard).toBe(mini * 10)
+  })
+
+  it('合計最大損失: ミニオプション', () => {
+    const trades = [
+      makeTrade({ entry_price: 150, quantity: 1 }),
+      makeTrade({ entry_price: 200, quantity: 2 }),
+    ]
+    const result = calculateTotalMaxLoss(trades, 'buy', MULTIPLIER_MINI)
+    expect(result).toBe(150 * 1 * 100 + 200 * 2 * 100) // 15,000 + 40,000 = 55,000
   })
 })

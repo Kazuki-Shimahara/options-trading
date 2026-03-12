@@ -3,6 +3,7 @@ import { getOpenTrades, getLatestIvRanks } from '@/lib/supabase'
 import { IvRankGauge } from '@/components/IvRankGauge'
 import { MaxLossSummary } from '@/components/MaxLossSummary'
 import { calculateTotalMaxLoss } from '@/lib/max-loss'
+import { DEFAULT_MULTIPLIER } from '@/lib/constants'
 
 export default async function Home() {
   const [openTrades, ivRanks] = await Promise.all([
@@ -12,9 +13,9 @@ export default async function Home() {
 
   const openCount = openTrades.length
   // Phase 1: 簡易含み損益（エントリー価格ベース）
-  // entry_price * quantity * 1000 の合計をポジション価値として表示
+  // entry_price * quantity * multiplier の合計をポジション価値として表示
   const totalPositionValue = openTrades.reduce(
-    (sum, t) => sum + t.entry_price * t.quantity * 1000,
+    (sum, t) => sum + t.entry_price * t.quantity * DEFAULT_MULTIPLIER,
     0
   )
   const totalMaxLoss = calculateTotalMaxLoss(openTrades)
