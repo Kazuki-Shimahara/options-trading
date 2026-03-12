@@ -1,6 +1,25 @@
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import type { Trade } from '@/types/database'
+import IvRankAnalysis from '@/components/IvRankAnalysis'
 
-export default function AnalyticsPage() {
+async function getClosedTrades(): Promise<Trade[]> {
+  const { data, error } = await supabase
+    .from('trades')
+    .select('*')
+    .eq('status', 'closed')
+    .order('trade_date', { ascending: false })
+
+  if (error) {
+    console.error('Failed to fetch trades:', error)
+    return []
+  }
+  return (data ?? []) as Trade[]
+}
+
+export default async function AnalyticsPage() {
+  const trades = await getClosedTrades()
+
   return (
     <main className="min-h-[calc(100vh-3.5rem)] px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -8,11 +27,14 @@ export default function AnalyticsPage() {
           &larr; ホーム
         </Link>
         <h1 className="text-2xl font-bold text-slate-100 mb-2">分析</h1>
-        <p className="text-slate-500 mb-8">Phase 3で実装予定</p>
+        <p className="text-slate-500 mb-8">トレード分析ダッシュボード</p>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-          <p className="text-slate-400">損益チャート・敗因分析・IV相関ダッシュボードを準備中</p>
-        </div>
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
+            勝率 × IVランク相関分析
+          </h2>
+          <IvRankAnalysis trades={trades} />
+        </section>
       </div>
     </main>
   )
