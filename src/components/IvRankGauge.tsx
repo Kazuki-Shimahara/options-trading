@@ -21,8 +21,8 @@ export function IvRankGauge({ ivRank, label = 'IVランク' }: IvRankGaugeProps)
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
         <p className="text-sm font-semibold text-slate-300 mb-3">{label}</p>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-slate-500 animate-pulse" />
-          <p className="text-sm text-slate-400">データ取得中...</p>
+          <span className="w-2 h-2 rounded-full bg-slate-600" />
+          <p className="text-sm text-slate-500">データなし</p>
         </div>
       </div>
     )

@@ -3,6 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { isPublicPath } from '@/lib/supabase/auth-config'
 
 export async function middleware(request: NextRequest) {
+  // ローカル開発時は認証をスキップ
+  if (process.env.SKIP_AUTH === 'true') {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -26,13 +31,9 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
-  // 公開パスはそのまま通す
+  // 公開パスはそのまま通す（getUser不要）
   if (isPublicPath(pathname)) {
     return supabaseResponse
   }
@@ -41,6 +42,10 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.')) {
     return supabaseResponse
   }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // 未認証ユーザーをログインページにリダイレクト
   if (!user) {
