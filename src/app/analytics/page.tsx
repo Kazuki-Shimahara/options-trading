@@ -1,8 +1,25 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { buildSkewTimeSeries } from '@/lib/iv-calculations'
-import type { IvHistory } from '@/types/database'
+import type { IvHistory, Trade } from '@/types/database'
 import VolatilitySkewChart from '@/components/VolatilitySkewChart'
+import { buildPnlChartData } from '@/lib/pnl-chart-data'
+import { PnlChart } from '@/components/PnlChart'
+import IvRankAnalysis from '@/components/IvRankAnalysis'
+
+async function getClosedTrades(): Promise<Trade[]> {
+  const { data, error } = await supabase
+    .from('trades')
+    .select('*')
+    .eq('status', 'closed')
+    .order('exit_date', { ascending: true })
+
+  if (error) {
+    console.error('Failed to fetch trades:', error)
+    return []
+  }
+  return (data ?? []) as Trade[]
+}
 
 async function getIvHistory(): Promise<IvHistory[]> {
   try {
@@ -22,7 +39,11 @@ async function getIvHistory(): Promise<IvHistory[]> {
 }
 
 export default async function AnalyticsPage() {
-  const ivHistory = await getIvHistory()
+  const [trades, ivHistory] = await Promise.all([
+    getClosedTrades(),
+    getIvHistory(),
+  ])
+  const chartData = buildPnlChartData(trades)
   const skewTimeSeries = buildSkewTimeSeries(ivHistory)
 
   return (
@@ -32,15 +53,20 @@ export default async function AnalyticsPage() {
           &larr; ホーム
         </Link>
         <h1 className="text-2xl font-bold text-slate-100 mb-2">分析</h1>
-        <p className="text-slate-500 mb-8">ボラティリティ・スキュー分析</p>
+        <p className="text-slate-500 mb-8">トレード分析ダッシュボード</p>
 
-        <div className="space-y-8">
+        <PnlChart data={chartData} />
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-slate-100 mb-4">
+            勝率 × IVランク相関分析
+          </h2>
+          <IvRankAnalysis trades={trades} />
+        </section>
+
+        <section className="mb-8">
           <VolatilitySkewChart data={skewTimeSeries} />
-
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
-            <p className="text-slate-400">損益チャート・敗因分析・IV相関ダッシュボードを準備中</p>
-          </div>
-        </div>
+        </section>
       </div>
     </main>
   )

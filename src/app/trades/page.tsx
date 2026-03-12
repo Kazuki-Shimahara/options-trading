@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { Trade } from '@/types/database'
+import { calculateMaxLoss } from '@/lib/max-loss'
 
 async function getTrades(): Promise<Trade[]> {
   const { data, error } = await supabase
@@ -30,12 +31,23 @@ export default async function TradesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-white">売買履歴</h1>
-          <Link
-            href="/trades/new"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors"
-          >
-            + 新規記録
-          </Link>
+          <div className="flex items-center gap-2">
+            {trades.length > 0 && (
+              <a
+                href="/api/trades/export"
+                download="trades.csv"
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                CSVエクスポート
+              </a>
+            )}
+            <Link
+              href="/trades/new"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-xl transition-colors"
+            >
+              + 新規記録
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}
@@ -121,7 +133,7 @@ export default async function TradesPage() {
                     </div>
                   </div>
 
-                  {/* PnL */}
+                  {/* PnL / Max Loss */}
                   <div className="flex-shrink-0 text-right flex items-center gap-2">
                     {trade.pnl !== null ? (
                       <span className={`text-sm font-semibold tabular-nums ${
@@ -130,7 +142,12 @@ export default async function TradesPage() {
                         {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toLocaleString()}円
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-xs text-slate-400">@ {trade.entry_price}</span>
+                        <span className="text-xs text-red-400/80 tabular-nums">
+                          最大損失 {calculateMaxLoss(trade).toLocaleString()}円
+                        </span>
+                      </div>
                     )}
                     <span className="text-slate-700 group-hover:text-slate-500 transition-colors text-sm flex-shrink-0">›</span>
                   </div>

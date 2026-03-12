@@ -79,6 +79,68 @@ export function calculateAllGreeks(inputs: BSInputs): Greeks {
   return calculateGreeks(inputs)
 }
 
+/**
+ * 個別ポジションのGreeks（数量付き）
+ */
+export interface PositionGreeks {
+  delta: number
+  gamma: number
+  theta: number
+  vega: number
+  quantity: number
+}
+
+/**
+ * ポートフォリオ全体のGreeks合算
+ * 各ポジションのGreeksを数量で加重して合算する
+ */
+export function aggregatePortfolioGreeks(positions: PositionGreeks[]): Greeks {
+  if (positions.length === 0) {
+    return { delta: 0, gamma: 0, theta: 0, vega: 0 }
+  }
+
+  const totals = positions.reduce(
+    (acc, pos) => ({
+      delta: acc.delta + pos.delta * pos.quantity,
+      gamma: acc.gamma + pos.gamma * pos.quantity,
+      theta: acc.theta + pos.theta * pos.quantity,
+      vega: acc.vega + pos.vega * pos.quantity,
+    }),
+    { delta: 0, gamma: 0, theta: 0, vega: 0 }
+  )
+
+  return {
+    delta: roundTo(totals.delta, 4),
+    gamma: roundTo(totals.gamma, 6),
+    theta: roundTo(totals.theta, 2),
+    vega: roundTo(totals.vega, 2),
+  }
+}
+
+/**
+ * デルタ中立乖離度の計算結果
+ */
+export interface DeltaNeutralResult {
+  deviation: number   // 乖離度（デルタ絶対値）
+  isWarning: boolean  // 閾値超え警告
+}
+
+/**
+ * デルタ中立乖離度を計算する
+ * @param portfolioDelta ポートフォリオの合算デルタ
+ * @param threshold 警告閾値（デフォルト0.5）
+ */
+export function calculateDeltaNeutralDeviation(
+  portfolioDelta: number,
+  threshold: number = 0.5
+): DeltaNeutralResult {
+  const deviation = roundTo(Math.abs(portfolioDelta), 4)
+  return {
+    deviation,
+    isWarning: deviation > threshold,
+  }
+}
+
 function roundTo(value: number, decimals: number): number {
   const factor = Math.pow(10, decimals)
   return Math.round(value * factor) / factor
