@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { getOpenTrades, getLatestIvRanks } from '@/lib/supabase'
 import { IvRankGauge } from '@/components/IvRankGauge'
+import { GreeksSummary } from '@/components/GreeksSummary'
+import { aggregatePortfolioGreeks, calculateDeltaNeutralDeviation } from '@/lib/greeks'
+import type { PositionGreeks } from '@/lib/greeks'
 import { MaxLossSummary } from '@/components/MaxLossSummary'
 import { calculateTotalMaxLoss } from '@/lib/max-loss'
 import { DEFAULT_MULTIPLIER } from '@/lib/constants'
@@ -19,6 +22,19 @@ export default async function Home() {
     0
   )
   const totalMaxLoss = calculateTotalMaxLoss(openTrades)
+
+  // ポートフォリオGreeks合算（エントリー時Greeksがある未決済ポジション）
+  const positionGreeks: PositionGreeks[] = openTrades
+    .filter((t) => t.entry_delta !== null)
+    .map((t) => ({
+      delta: t.entry_delta!,
+      gamma: t.entry_gamma ?? 0,
+      theta: t.entry_theta ?? 0,
+      vega: t.entry_vega ?? 0,
+      quantity: t.quantity,
+    }))
+  const portfolioGreeks = aggregatePortfolioGreeks(positionGreeks)
+  const deltaNeutral = calculateDeltaNeutralDeviation(portfolioGreeks.delta)
 
   return (
     <main className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center px-4 py-16">
@@ -49,6 +65,13 @@ export default async function Home() {
             <IvRankGauge ivRank={ivRanks.put_iv_rank} label="プット IVランク" />
           </div>
         </div>
+
+        {/* Portfolio Greeks Summary */}
+        {openCount > 0 && positionGreeks.length > 0 && (
+          <div className="mb-8">
+            <GreeksSummary greeks={portfolioGreeks} deltaNeutral={deltaNeutral} />
+          </div>
+        )}
 
         {/* Open Positions Summary */}
         <div className="mb-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">

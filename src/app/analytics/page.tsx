@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { buildPnlChartData } from '@/lib/pnl-chart-data'
+import { PnlChart } from '@/components/PnlChart'
 import type { Trade } from '@/types/database'
 import IvRankAnalysis from '@/components/IvRankAnalysis'
 
@@ -8,7 +10,7 @@ async function getClosedTrades(): Promise<Trade[]> {
     .from('trades')
     .select('*')
     .eq('status', 'closed')
-    .order('trade_date', { ascending: false })
+    .order('exit_date', { ascending: true })
 
   if (error) {
     console.error('Failed to fetch trades:', error)
@@ -19,6 +21,7 @@ async function getClosedTrades(): Promise<Trade[]> {
 
 export default async function AnalyticsPage() {
   const trades = await getClosedTrades()
+  const chartData = buildPnlChartData(trades)
 
   return (
     <main className="min-h-[calc(100vh-3.5rem)] px-4 py-8">
@@ -28,6 +31,8 @@ export default async function AnalyticsPage() {
         </Link>
         <h1 className="text-2xl font-bold text-slate-100 mb-2">分析</h1>
         <p className="text-slate-500 mb-8">トレード分析ダッシュボード</p>
+
+        <PnlChart data={chartData} />
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-slate-100 mb-4">
