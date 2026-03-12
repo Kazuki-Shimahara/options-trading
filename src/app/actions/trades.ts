@@ -24,6 +24,8 @@ interface CreateTradeInput {
   entry_gamma: number | null
   entry_theta: number | null
   entry_vega: number | null
+  defeat_tags: string[] | null
+  market_env_tags: string[] | null
 }
 
 interface UpdateTradeInput {
@@ -70,7 +72,8 @@ export async function createTrade(data: CreateTradeInput): Promise<TradeActionRe
     iv_at_entry: data.iv_at_entry,
     memo: data.memo,
     status: data.exit_price !== null ? 'closed' : 'open',
-    defeat_tags: null,
+    defeat_tags: data.defeat_tags,
+    market_env_tags: data.market_env_tags,
     user_id: null,
     entry_delta: data.entry_delta,
     entry_gamma: data.entry_gamma,

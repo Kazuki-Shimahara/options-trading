@@ -20,7 +20,8 @@ create table if not exists trades (
   entry_delta numeric(8, 4),
   entry_gamma numeric(10, 6),
   entry_theta numeric(10, 2),
-  entry_vega numeric(10, 2)
+  entry_vega numeric(10, 2),
+  market_env_tags text[]
 );
 
 -- updated_at を自動更新するトリガー

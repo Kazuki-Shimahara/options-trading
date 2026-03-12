@@ -19,6 +19,7 @@ export interface Trade {
   memo: string | null
   status: TradeStatus
   defeat_tags: string[] | null
+  market_env_tags: string[] | null
   entry_delta: number | null
   entry_gamma: number | null
   entry_theta: number | null
