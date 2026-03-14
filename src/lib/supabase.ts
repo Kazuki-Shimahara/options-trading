@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Trade } from '@/types/database'
+import { parseTrades, type Trade } from '@/lib/trade-schema'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -56,5 +56,5 @@ export async function getOpenTrades(): Promise<Trade[]> {
     console.error('Failed to fetch open trades:', error)
     return []
   }
-  return (data ?? []) as Trade[]
+  return parseTrades(data ?? [])
 }

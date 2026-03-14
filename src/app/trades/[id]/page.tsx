@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import type { Trade } from '@/types/database'
+import { parseTrade, type Trade } from '@/lib/trade-schema'
 import DeleteButton from './DeleteButton'
 
 async function getTrade(id: string): Promise<Trade | null> {
@@ -12,8 +12,8 @@ async function getTrade(id: string): Promise<Trade | null> {
     .eq('id', id)
     .single()
 
-  if (error) return null
-  return data as Trade
+  if (error || !data) return null
+  return parseTrade(data)
 }
 
 export default async function TradeDetailPage({

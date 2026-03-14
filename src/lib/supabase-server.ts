@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import type { Trade } from '@/types/database'
+import { parseTrades, type Trade } from '@/lib/trade-schema'
 
 export interface IvRankData {
   call_iv_rank: number | null
@@ -54,5 +54,5 @@ export async function getOpenTrades(): Promise<Trade[]> {
     console.error('Failed to fetch open trades:', error)
     return []
   }
-  return (data ?? []) as Trade[]
+  return parseTrades(data ?? [])
 }

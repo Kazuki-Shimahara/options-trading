@@ -3,67 +3,24 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { calculatePnl } from "@/lib/trade";
-import type { TradeType } from "@/types/database";
+import {
+  createTradeSchema,
+  updateTradeSchema,
+  getZodErrorMessage,
+} from "@/lib/trade-schema";
 
 export type TradeActionResult =
   | { success: true }
   | { success: false; error: string };
 
-interface CreateTradeInput {
-  trade_date: string;
-  trade_type: TradeType;
-  strike_price: number;
-  expiry_date: string;
-  quantity: number;
-  entry_price: number;
-  exit_price: number | null;
-  exit_date: string | null;
-  iv_at_entry: number | null;
-  memo: string | null;
-  entry_delta: number | null;
-  entry_gamma: number | null;
-  entry_theta: number | null;
-  entry_vega: number | null;
-  defeat_tags: string[] | null;
-  market_env_tags: string[] | null;
-}
-
-interface UpdateTradeInput {
-  trade_date: string;
-  trade_type: TradeType;
-  strike_price: number;
-  expiry_date: string;
-  quantity: number;
-  entry_price: number;
-  exit_price: number | null;
-  exit_date: string | null;
-  iv_at_entry: number | null;
-  memo: string | null;
-}
-
-function validateTradeInput(
-  data: CreateTradeInput | UpdateTradeInput,
-): string | null {
-  if (!data.trade_date) return "取引日は必須です";
-  if (!data.trade_type || !["call", "put"].includes(data.trade_type))
-    return "種別はcallまたはputを指定してください";
-  if (!data.strike_price || data.strike_price <= 0)
-    return "権利行使価格は正の数を指定してください";
-  if (!data.expiry_date) return "限月（SQ日）は必須です";
-  if (!data.quantity || data.quantity < 1)
-    return "枚数は1以上を指定してください";
-  if (data.entry_price == null || data.entry_price < 0)
-    return "購入価格は0以上を指定してください";
-  return null;
-}
-
 export async function createTrade(
-  data: CreateTradeInput,
+  input: unknown,
 ): Promise<TradeActionResult> {
-  const validationError = validateTradeInput(data);
-  if (validationError) {
-    return { success: false, error: validationError };
+  const parsed = createTradeSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: getZodErrorMessage(parsed.error) };
   }
+  const data = parsed.data;
 
   const supabase = await createServerSupabaseClient();
   const {
@@ -108,16 +65,17 @@ export async function createTrade(
 
 export async function updateTrade(
   id: string,
-  data: UpdateTradeInput,
+  input: unknown,
 ): Promise<TradeActionResult> {
   if (!id) {
     return { success: false, error: "取引IDが指定されていません" };
   }
 
-  const validationError = validateTradeInput(data);
-  if (validationError) {
-    return { success: false, error: validationError };
+  const parsed = updateTradeSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: getZodErrorMessage(parsed.error) };
   }
+  const data = parsed.data;
 
   const supabase = await createServerSupabaseClient();
   const {
