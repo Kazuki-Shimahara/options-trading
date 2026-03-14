@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { generateCsv } from '@/lib/csv-export'
+import { requireUserAuth } from '@/lib/api-auth'
 import type { Trade } from '@/types/database'
 
 export async function GET() {
+  const auth = await requireUserAuth()
+  if (!auth.authenticated) return auth.response
+
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('trades')

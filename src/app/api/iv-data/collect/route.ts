@@ -13,16 +13,11 @@
 
 import { NextResponse } from 'next/server'
 import { collectIvData } from '@/lib/iv-collect'
+import { requireInternalAuth } from '@/lib/api-auth'
 
 export async function POST(request: Request) {
-  // 簡易認証: API_SECRET_KEY が設定されている場合はチェック
-  const apiSecretKey = process.env.API_SECRET_KEY
-  if (apiSecretKey) {
-    const authHeader = request.headers.get('x-api-key')
-    if (authHeader !== apiSecretKey) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-  }
+  const auth = requireInternalAuth(request)
+  if (!auth.authenticated) return auth.response
 
   try {
     const body = (await request.json().catch(() => ({}))) as {

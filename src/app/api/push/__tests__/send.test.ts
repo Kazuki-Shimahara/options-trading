@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Mock api-auth
+vi.mock('@/lib/api-auth', () => ({
+  requireInternalAuth: vi.fn().mockReturnValue({
+    authenticated: true,
+    userId: 'internal',
+  }),
+}))
+
 // Mock web-push
 vi.mock('web-push', () => ({
   default: {

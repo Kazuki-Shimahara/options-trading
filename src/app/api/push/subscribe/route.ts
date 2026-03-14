@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { requireUserAuth } from '@/lib/api-auth'
 
 export async function POST(request: Request) {
+  const auth = await requireUserAuth()
+  if (!auth.authenticated) return auth.response
+
   const body = await request.json()
   const { subscription } = body
 
@@ -32,6 +36,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireUserAuth()
+  if (!auth.authenticated) return auth.response
+
   const body = await request.json()
   const { endpoint } = body
 
