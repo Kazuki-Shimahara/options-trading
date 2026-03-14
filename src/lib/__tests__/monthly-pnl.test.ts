@@ -28,6 +28,7 @@ function makeTrade(overrides: Partial<Trade> = {}): Trade {
     entry_vega: null,
     entry_iv_rank: null,
     entry_iv_hv_ratio: null,
+    is_mini: false,
     ...overrides,
   }
 }

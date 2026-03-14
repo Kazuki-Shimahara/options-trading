@@ -2,7 +2,7 @@
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { calculatePnl } from "@/lib/trade";
+import { calculatePnl, getMultiplier } from "@/lib/trade";
 import {
   createTradeSchema,
   updateTradeSchema,
@@ -31,7 +31,8 @@ export async function createTrade(
     return { success: false, error: "認証が必要です" };
   }
 
-  const pnl = calculatePnl(data.exit_price, data.entry_price, data.quantity);
+  const multiplier = getMultiplier(data.is_mini);
+  const pnl = calculatePnl(data.exit_price, data.entry_price, data.quantity, multiplier);
 
   const { error } = await supabase.from("trades").insert({
     trade_date: data.trade_date,
@@ -53,6 +54,7 @@ export async function createTrade(
     entry_gamma: data.entry_gamma,
     entry_theta: data.entry_theta,
     entry_vega: data.entry_vega,
+    is_mini: data.is_mini,
   });
 
   if (error) {
@@ -86,7 +88,8 @@ export async function updateTrade(
     return { success: false, error: "認証が必要です" };
   }
 
-  const pnl = calculatePnl(data.exit_price, data.entry_price, data.quantity);
+  const multiplier = getMultiplier(data.is_mini);
+  const pnl = calculatePnl(data.exit_price, data.entry_price, data.quantity, multiplier);
 
   const { error } = await supabase
     .from("trades")
@@ -103,6 +106,7 @@ export async function updateTrade(
       iv_at_entry: data.iv_at_entry,
       memo: data.memo,
       status: data.exit_price !== null ? "closed" : "open",
+      is_mini: data.is_mini,
     })
     .eq("id", id);
 

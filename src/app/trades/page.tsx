@@ -149,12 +149,19 @@ export default async function TradesPage({
                 {/* Mobile: top row with badge + PnL */}
                 <div className="flex items-center justify-between sm:contents">
                   {/* Type Badge */}
-                  <div className={`flex-shrink-0 w-14 text-center text-[10px] font-bold py-1 rounded ${
-                    trade.trade_type === 'call'
-                      ? 'bg-[#00d4aa]/10 text-[#00d4aa] border border-[#00d4aa]/20'
-                      : 'bg-[#ff6b6b]/10 text-[#ff6b6b] border border-[#ff6b6b]/20'
-                  }`}>
-                    {trade.trade_type.toUpperCase()}
+                  <div className="flex-shrink-0 flex items-center gap-1">
+                    <div className={`w-14 text-center text-[10px] font-bold py-1 rounded ${
+                      trade.trade_type === 'call'
+                        ? 'bg-[#00d4aa]/10 text-[#00d4aa] border border-[#00d4aa]/20'
+                        : 'bg-[#ff6b6b]/10 text-[#ff6b6b] border border-[#ff6b6b]/20'
+                    }`}>
+                      {trade.trade_type.toUpperCase()}
+                    </div>
+                    {trade.is_mini && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#f0b429]/10 text-[#f0b429] border border-[#f0b429]/20">
+                        ミニ
+                      </span>
+                    )}
                   </div>
 
                   {/* Info */}

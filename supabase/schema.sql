@@ -23,8 +23,12 @@ create table if not exists trades (
   entry_vega numeric(10, 2),
   market_env_tags text[],
   entry_iv_rank numeric(5, 2),
-  entry_iv_hv_ratio numeric(8, 4)
+  entry_iv_hv_ratio numeric(8, 4),
+  is_mini boolean not null default false
 );
+
+-- ミニオプション対応マイグレーション（既存テーブルへの適用）
+-- ALTER TABLE trades ADD COLUMN IF NOT EXISTS is_mini boolean NOT NULL DEFAULT false;
 
 -- updated_at を自動更新するトリガー
 create or replace function update_updated_at()

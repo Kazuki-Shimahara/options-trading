@@ -26,6 +26,7 @@ export interface Trade {
   entry_vega: number | null;
   entry_iv_rank: number | null;
   entry_iv_hv_ratio: number | null;
+  is_mini: boolean;
 }
 
 export type OptionType = "call" | "put";
