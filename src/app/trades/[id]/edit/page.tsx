@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 import { updateTrade } from '@/app/actions/trades'
 import { parseTrade, type Trade } from '@/lib/trade-schema'
+import { DatePicker } from '@/components/DatePicker'
 
 const inputClass =
   'w-full bg-[#0a0a0a] border border-[#2a2a2a] text-white rounded-lg px-3 py-2.5 text-sm placeholder-[#444] focus:outline-none focus:ring-1 focus:ring-[#00d4aa] focus:border-[#00d4aa] transition-colors'
@@ -23,6 +24,9 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
   const [tradeId, setTradeId] = useState<string | null>(null)
   const [tradeType, setTradeType] = useState<'call' | 'put'>('call')
   const [isMini, setIsMini] = useState(false)
+  const [tradeDate, setTradeDate] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [exitDate, setExitDate] = useState('')
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -41,6 +45,9 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
           setTrade(t)
           setTradeType(t.trade_type)
           setIsMini(t.is_mini)
+          setTradeDate(t.trade_date)
+          setExpiryDate(t.expiry_date ?? '')
+          setExitDate(t.exit_date ?? '')
         })
     })
   }, [params, router])
@@ -56,17 +63,16 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
     const data = new FormData(form)
 
     const exitPriceRaw = data.get('exit_price') as string
-    const exitDateRaw = data.get('exit_date') as string
 
     const result = await updateTrade(tradeId, {
-      trade_date: data.get('trade_date') as string,
+      trade_date: isSettle ? trade.trade_date : tradeDate,
       trade_type: isSettle ? trade.trade_type : tradeType,
       strike_price: parseInt(data.get('strike_price') as string),
-      expiry_date: data.get('expiry_date') as string,
+      expiry_date: isSettle ? (trade.expiry_date ?? '') : expiryDate,
       quantity: parseInt(data.get('quantity') as string),
       entry_price: parseFloat(data.get('entry_price') as string),
       exit_price: exitPriceRaw ? parseFloat(exitPriceRaw) : null,
-      exit_date: exitDateRaw || null,
+      exit_date: exitDate || null,
       iv_at_entry: data.get('iv_at_entry') ? parseFloat(data.get('iv_at_entry') as string) : null,
       memo: (data.get('memo') as string) || null,
       is_mini: isMini,
@@ -110,10 +116,8 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSettle ? (
             <>
-              <input type="hidden" name="trade_date" value={trade.trade_date} />
               <input type="hidden" name="trade_type" value={trade.trade_type} />
               <input type="hidden" name="strike_price" value={trade.strike_price} />
-              <input type="hidden" name="expiry_date" value={trade.expiry_date ?? ''} />
               <input type="hidden" name="quantity" value={trade.quantity} />
               <input type="hidden" name="entry_price" value={trade.entry_price} />
               <input type="hidden" name="iv_at_entry" value={trade.iv_at_entry ?? ''} />
@@ -182,14 +186,18 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelClass}>取引日</label>
-                  <input name="trade_date" type="date" required defaultValue={trade.trade_date} className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>限月（SQ日）</label>
-                  <input name="expiry_date" type="date" required defaultValue={trade.expiry_date ?? ''} className={inputClass} />
-                </div>
+                <DatePicker
+                  label="取引日"
+                  value={tradeDate}
+                  onChange={setTradeDate}
+                  required
+                />
+                <DatePicker
+                  label="限月（SQ日）"
+                  value={expiryDate}
+                  onChange={setExpiryDate}
+                  required
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -236,15 +244,11 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
                   className={inputClass}
                 />
               </div>
-              <div>
-                <label className={labelClass}>決済日</label>
-                <input
-                  name="exit_date"
-                  type="date"
-                  defaultValue={trade.exit_date ?? ''}
-                  className={inputClass}
-                />
-              </div>
+              <DatePicker
+                label="決済日"
+                value={exitDate}
+                onChange={setExitDate}
+              />
             </div>
           </div>
 

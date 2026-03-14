@@ -8,6 +8,7 @@ import { calculateGreeks, type Greeks } from '@/lib/greeks'
 import type { BSInputs } from '@/lib/black-scholes'
 import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
 import { useFormDraft } from '@/hooks/useFormDraft'
+import { DatePicker } from '@/components/DatePicker'
 
 interface TradeDraft {
   tradeType: 'call' | 'put'
@@ -219,28 +220,18 @@ export default function NewTradePage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-4">
-              <div>
-                <label className={labelClass}>取引日</label>
-                <input
-                  name="trade_date"
-                  type="date"
-                  required
-                  value={draft.tradeDate}
-                  onChange={(e) => updateField('tradeDate', e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>限月（SQ日）</label>
-                <input
-                  name="expiry_date"
-                  type="date"
-                  required
-                  value={draft.expiryDate}
-                  onChange={(e) => updateField('expiryDate', e.target.value)}
-                  className={inputClass}
-                />
-              </div>
+              <DatePicker
+                label="取引日"
+                value={draft.tradeDate}
+                onChange={(v) => updateField('tradeDate', v)}
+                required
+              />
+              <DatePicker
+                label="限月（SQ日）"
+                value={draft.expiryDate}
+                onChange={(v) => updateField('expiryDate', v)}
+                required
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-3">
@@ -328,16 +319,11 @@ export default function NewTradePage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>決済日（任意）</label>
-                <input
-                  name="exit_date"
-                  type="date"
-                  value={draft.exitDate}
-                  onChange={(e) => updateField('exitDate', e.target.value)}
-                  className={inputClass}
-                />
-              </div>
+              <DatePicker
+                label="決済日（任意）"
+                value={draft.exitDate}
+                onChange={(v) => updateField('exitDate', v)}
+              />
             </div>
           </div>
 
