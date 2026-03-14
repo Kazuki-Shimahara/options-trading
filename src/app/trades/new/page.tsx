@@ -7,6 +7,41 @@ import { createTrade } from '@/app/actions/trades'
 import { calculateGreeks, type Greeks } from '@/lib/greeks'
 import type { BSInputs } from '@/lib/black-scholes'
 import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
+import { useFormDraft } from '@/hooks/useFormDraft'
+
+interface TradeDraft {
+  tradeType: 'call' | 'put'
+  tradeDate: string
+  expiryDate: string
+  strikePrice: string
+  quantity: string
+  entryPrice: string
+  exitPrice: string
+  exitDate: string
+  ivAtEntry: string
+  spotPrice: string
+  memo: string
+  defeatTags: string[]
+  marketEnvTags: string[]
+}
+
+const DRAFT_KEY = 'draft:new-trade'
+
+const createInitialDraft = (): TradeDraft => ({
+  tradeType: 'call',
+  tradeDate: new Date().toISOString().split('T')[0],
+  expiryDate: '',
+  strikePrice: '',
+  quantity: '1',
+  entryPrice: '',
+  exitPrice: '',
+  exitDate: '',
+  ivAtEntry: '',
+  spotPrice: '',
+  memo: '',
+  defeatTags: [],
+  marketEnvTags: [],
+})
 
 const inputClass =
   'w-full bg-[#0a0a0a] border border-[#2a2a2a] text-white rounded-lg px-3 py-2.5 text-sm placeholder-[#444] focus:outline-none focus:ring-1 focus:ring-[#00d4aa] focus:border-[#00d4aa] transition-colors'
@@ -17,29 +52,25 @@ export default function NewTradePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [tradeType, setTradeType] = useState<'call' | 'put'>('call')
-
-  const [selectedDefeatTags, setSelectedDefeatTags] = useState<string[]>([])
-  const [selectedMarketEnvTags, setSelectedMarketEnvTags] = useState<string[]>([])
-
-  const [spotPrice, setSpotPrice] = useState<string>('')
-  const [strikePrice, setStrikePrice] = useState<string>('')
-  const [ivAtEntry, setIvAtEntry] = useState<string>('')
-  const [expiryDate, setExpiryDate] = useState<string>('')
+  const { values: draft, hasDraft, updateValues: updateDraft, clearDraft } = useFormDraft<TradeDraft>(DRAFT_KEY, createInitialDraft())
   const [greeks, setGreeks] = useState<Greeks | null>(null)
 
-  const computeGreeks = useCallback(() => {
-    const spot = parseFloat(spotPrice)
-    const strike = parseFloat(strikePrice)
-    const iv = parseFloat(ivAtEntry)
+  const updateField = <K extends keyof TradeDraft>(key: K, value: TradeDraft[K]) => {
+    updateDraft({ ...draft, [key]: value })
+  }
 
-    if (!spot || !strike || !iv || !expiryDate) {
+  const computeGreeks = useCallback(() => {
+    const spot = parseFloat(draft.spotPrice)
+    const strike = parseFloat(draft.strikePrice)
+    const iv = parseFloat(draft.ivAtEntry)
+
+    if (!spot || !strike || !iv || !draft.expiryDate) {
       setGreeks(null)
       return
     }
 
     const now = new Date()
-    const expiry = new Date(expiryDate)
+    const expiry = new Date(draft.expiryDate)
     const diffMs = expiry.getTime() - now.getTime()
     const timeToExpiry = diffMs / (1000 * 60 * 60 * 24 * 365)
 
@@ -55,7 +86,7 @@ export default function NewTradePage() {
       volatility: iv / 100,
       riskFreeRate: 0.001,
       dividendYield: 0.02,
-      optionType: tradeType,
+      optionType: draft.tradeType,
     }
 
     try {
@@ -64,28 +95,25 @@ export default function NewTradePage() {
     } catch {
       setGreeks(null)
     }
-  }, [spotPrice, strikePrice, ivAtEntry, expiryDate, tradeType])
+  }, [draft.spotPrice, draft.strikePrice, draft.ivAtEntry, draft.expiryDate, draft.tradeType])
 
   useEffect(() => {
     computeGreeks()
   }, [computeGreeks])
 
   function toggleDefeatTag(tag: string) {
-    setSelectedDefeatTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    )
+    const prev = draft.defeatTags
+    const next = prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    updateField('defeatTags', next)
   }
 
   function toggleMarketEnvTag(axis: string, tag: string) {
-    setSelectedMarketEnvTags((prev) => {
-      const axisConfig = MARKET_ENV_AXES[axis as keyof typeof MARKET_ENV_AXES]
-      const axisTags = axisConfig.tags as readonly string[]
-      const withoutAxis = prev.filter((t) => !axisTags.includes(t))
-      if (prev.includes(tag)) {
-        return withoutAxis
-      }
-      return [...withoutAxis, tag]
-    })
+    const prev = draft.marketEnvTags
+    const axisConfig = MARKET_ENV_AXES[axis as keyof typeof MARKET_ENV_AXES]
+    const axisTags = axisConfig.tags as readonly string[]
+    const withoutAxis = prev.filter((t) => !axisTags.includes(t))
+    const next = prev.includes(tag) ? withoutAxis : [...withoutAxis, tag]
+    updateField('marketEnvTags', next)
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -93,29 +121,23 @@ export default function NewTradePage() {
     setLoading(true)
     setError(null)
 
-    const form = e.currentTarget
-    const data = new FormData(form)
-
-    const exitPriceRaw = data.get('exit_price') as string
-    const exitDateRaw = data.get('exit_date') as string
-
     const result = await createTrade({
-      trade_date: data.get('trade_date') as string,
-      trade_type: tradeType,
-      strike_price: parseInt(data.get('strike_price') as string),
-      expiry_date: data.get('expiry_date') as string,
-      quantity: parseInt(data.get('quantity') as string),
-      entry_price: parseFloat(data.get('entry_price') as string),
-      exit_price: exitPriceRaw ? parseFloat(exitPriceRaw) : null,
-      exit_date: exitDateRaw || null,
-      iv_at_entry: data.get('iv_at_entry') ? parseFloat(data.get('iv_at_entry') as string) : null,
-      memo: (data.get('memo') as string) || null,
+      trade_date: draft.tradeDate,
+      trade_type: draft.tradeType,
+      strike_price: parseInt(draft.strikePrice),
+      expiry_date: draft.expiryDate,
+      quantity: parseInt(draft.quantity),
+      entry_price: parseFloat(draft.entryPrice),
+      exit_price: draft.exitPrice ? parseFloat(draft.exitPrice) : null,
+      exit_date: draft.exitDate || null,
+      iv_at_entry: draft.ivAtEntry ? parseFloat(draft.ivAtEntry) : null,
+      memo: draft.memo || null,
       entry_delta: greeks?.delta ?? null,
       entry_gamma: greeks?.gamma ?? null,
       entry_theta: greeks?.theta ?? null,
       entry_vega: greeks?.vega ?? null,
-      defeat_tags: selectedDefeatTags.length > 0 ? selectedDefeatTags : null,
-      market_env_tags: selectedMarketEnvTags.length > 0 ? selectedMarketEnvTags : null,
+      defeat_tags: draft.defeatTags.length > 0 ? draft.defeatTags : null,
+      market_env_tags: draft.marketEnvTags.length > 0 ? draft.marketEnvTags : null,
     })
 
     if (!result.success) {
@@ -124,6 +146,7 @@ export default function NewTradePage() {
       return
     }
 
+    clearDraft()
     router.push('/trades')
     router.refresh()
   }
@@ -137,7 +160,17 @@ export default function NewTradePage() {
             ← 戻る
           </Link>
           <h1 className="text-lg font-bold text-white">新規記録</h1>
-          <div className="w-10" />
+          {hasDraft ? (
+            <button
+              type="button"
+              onClick={clearDraft}
+              className="text-[#ff6b6b] hover:text-[#ff8888] text-xs transition-colors"
+            >
+              下書き破棄
+            </button>
+          ) : (
+            <div className="w-16" />
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -149,9 +182,9 @@ export default function NewTradePage() {
                 <button
                   key={t}
                   type="button"
-                  onClick={() => setTradeType(t)}
+                  onClick={() => updateField('tradeType', t)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    tradeType === t
+                    draft.tradeType === t
                       ? t === 'call'
                         ? 'bg-[#00d4aa] text-black'
                         : 'bg-[#ff6b6b] text-white'
@@ -162,7 +195,7 @@ export default function NewTradePage() {
                 </button>
               ))}
             </div>
-            <input type="hidden" name="trade_type" value={tradeType} />
+            <input type="hidden" name="trade_type" value={draft.tradeType} />
 
             <div className="grid grid-cols-2 gap-3 mt-4">
               <div>
@@ -171,7 +204,8 @@ export default function NewTradePage() {
                   name="trade_date"
                   type="date"
                   required
-                  defaultValue={new Date().toISOString().split('T')[0]}
+                  value={draft.tradeDate}
+                  onChange={(e) => updateField('tradeDate', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -181,8 +215,8 @@ export default function NewTradePage() {
                   name="expiry_date"
                   type="date"
                   required
-                  value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
+                  value={draft.expiryDate}
+                  onChange={(e) => updateField('expiryDate', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -196,8 +230,8 @@ export default function NewTradePage() {
                   type="number"
                   required
                   placeholder="39000"
-                  value={strikePrice}
-                  onChange={(e) => setStrikePrice(e.target.value)}
+                  value={draft.strikePrice}
+                  onChange={(e) => updateField('strikePrice', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -208,7 +242,8 @@ export default function NewTradePage() {
                   type="number"
                   required
                   min="1"
-                  defaultValue="1"
+                  value={draft.quantity}
+                  onChange={(e) => updateField('quantity', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -227,6 +262,8 @@ export default function NewTradePage() {
                   step="0.01"
                   required
                   placeholder="150.5"
+                  value={draft.entryPrice}
+                  onChange={(e) => updateField('entryPrice', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -237,8 +274,8 @@ export default function NewTradePage() {
                   type="number"
                   step="0.01"
                   placeholder="18.5"
-                  value={ivAtEntry}
-                  onChange={(e) => setIvAtEntry(e.target.value)}
+                  value={draft.ivAtEntry}
+                  onChange={(e) => updateField('ivAtEntry', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -251,8 +288,8 @@ export default function NewTradePage() {
                   type="number"
                   step="0.01"
                   placeholder="38500"
-                  value={spotPrice}
-                  onChange={(e) => setSpotPrice(e.target.value)}
+                  value={draft.spotPrice}
+                  onChange={(e) => updateField('spotPrice', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -263,6 +300,8 @@ export default function NewTradePage() {
                   type="number"
                   step="0.01"
                   placeholder="未決済は空欄"
+                  value={draft.exitPrice}
+                  onChange={(e) => updateField('exitPrice', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -273,6 +312,8 @@ export default function NewTradePage() {
                 <input
                   name="exit_date"
                   type="date"
+                  value={draft.exitDate}
+                  onChange={(e) => updateField('exitDate', e.target.value)}
                   className={inputClass}
                 />
               </div>
@@ -317,7 +358,7 @@ export default function NewTradePage() {
                       type="button"
                       onClick={() => toggleMarketEnvTag(axis, tag)}
                       className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
-                        selectedMarketEnvTags.includes(tag)
+                        draft.marketEnvTags.includes(tag)
                           ? 'bg-[#00d4aa] text-black'
                           : 'bg-[#1a1a1a] text-[#666] border border-[#2a2a2a] hover:border-[#333]'
                       }`}
@@ -344,7 +385,7 @@ export default function NewTradePage() {
                       type="button"
                       onClick={() => toggleDefeatTag(tag)}
                       className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
-                        selectedDefeatTags.includes(tag)
+                        draft.defeatTags.includes(tag)
                           ? 'bg-[#ff6b6b] text-white'
                           : 'bg-[#1a1a1a] text-[#666] border border-[#2a2a2a] hover:border-[#333]'
                       }`}
@@ -364,6 +405,8 @@ export default function NewTradePage() {
               name="memo"
               rows={3}
               placeholder="なぜこのタイミングでエントリーしたか..."
+              value={draft.memo}
+              onChange={(e) => updateField('memo', e.target.value)}
               className={`${inputClass} resize-none`}
             />
           </div>
