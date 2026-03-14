@@ -1,14 +1,32 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Trade } from '@/types/database'
 import { calculateMaxLoss } from '@/lib/max-loss'
+import { parseTradeFilterParams, buildTradeFilterQuery } from '@/lib/trade-filters'
+import TradeFilters from '@/components/TradeFilters'
 
-async function getTrades(): Promise<Trade[]> {
+async function getTrades(searchParams: URLSearchParams): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
-  const { data, error } = await supabase
+  const filters = parseTradeFilterParams(searchParams)
+  const conditions = buildTradeFilterQuery(filters)
+
+  let query = supabase
     .from('trades')
     .select('*')
     .order('trade_date', { ascending: false })
+
+  for (const condition of conditions) {
+    if (condition.operator === 'eq') {
+      query = query.eq(condition.column, condition.value)
+    } else if (condition.operator === 'gte') {
+      query = query.gte(condition.column, condition.value)
+    } else if (condition.operator === 'lte') {
+      query = query.lte(condition.column, condition.value)
+    }
+  }
+
+  const { data, error } = await query
 
   if (error) {
     console.error('Failed to fetch trades:', error)
@@ -17,8 +35,21 @@ async function getTrades(): Promise<Trade[]> {
   return (data ?? []) as Trade[]
 }
 
-export default async function TradesPage() {
-  const trades = await getTrades()
+export default async function TradesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const resolvedParams = await searchParams
+  const urlSearchParams = new URLSearchParams()
+  for (const [key, value] of Object.entries(resolvedParams)) {
+    if (typeof value === 'string') {
+      urlSearchParams.set(key, value)
+    }
+  }
+
+  const filters = parseTradeFilterParams(urlSearchParams)
+  const trades = await getTrades(urlSearchParams)
 
   const closedTrades = trades.filter((t) => t.pnl !== null)
   const totalPnl = closedTrades.reduce((sum, t) => sum + (t.pnl ?? 0), 0)
@@ -50,6 +81,16 @@ export default async function TradesPage() {
             </Link>
           </div>
         </div>
+
+        {/* Filters */}
+        <Suspense fallback={null}>
+          <TradeFilters
+            currentTradeType={filters.tradeType}
+            currentStatus={filters.status}
+            currentDateFrom={filters.dateFrom}
+            currentDateTo={filters.dateTo}
+          />
+        </Suspense>
 
         {/* Stats */}
         {trades.length > 0 && (
@@ -83,13 +124,19 @@ export default async function TradesPage() {
         {/* List */}
         {trades.length === 0 ? (
           <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-12 text-center">
-            <p className="text-[#555] mb-4">まだ取引の記録がありません</p>
-            <Link
-              href="/trades/new"
-              className="inline-block px-4 py-2 bg-[#00d4aa] hover:bg-[#00c49a] text-black text-sm font-medium rounded-lg transition-colors"
-            >
-              最初の取引を記録する
-            </Link>
+            <p className="text-[#555] mb-4">
+              {filters.tradeType || filters.status || filters.dateFrom || filters.dateTo
+                ? '条件に一致する取引がありません'
+                : 'まだ取引の記録がありません'}
+            </p>
+            {!(filters.tradeType || filters.status || filters.dateFrom || filters.dateTo) && (
+              <Link
+                href="/trades/new"
+                className="inline-block px-4 py-2 bg-[#00d4aa] hover:bg-[#00c49a] text-black text-sm font-medium rounded-lg transition-colors"
+              >
+                最初の取引を記録する
+              </Link>
+            )}
           </div>
         ) : (
           <div className="space-y-1">
