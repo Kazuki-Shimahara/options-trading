@@ -42,6 +42,28 @@ export async function getLatestIvRanks(): Promise<IvRankData> {
   return result
 }
 
+export async function getClosedTradesInMonth(year: number, month: number): Promise<Trade[]> {
+  const supabase = await createServerSupabaseClient()
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+  const nextMonth = month === 12 ? 1 : month + 1
+  const nextYear = month === 12 ? year + 1 : year
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
+
+  const { data, error } = await supabase
+    .from('trades')
+    .select('*')
+    .eq('status', 'closed')
+    .gte('exit_date', startDate)
+    .lt('exit_date', endDate)
+    .order('exit_date', { ascending: false })
+
+  if (error) {
+    console.error('Failed to fetch closed trades:', error)
+    return []
+  }
+  return (data ?? []) as Trade[]
+}
+
 export async function getOpenTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
