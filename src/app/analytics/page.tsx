@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import type { Trade, IvHistory } from '@/types/database'
+import { parseTrades, type Trade } from '@/lib/trade-schema'
+import type { IvHistory } from '@/types/database'
 import {
   DEFEAT_TAG_CATEGORIES,
   MARKET_ENV_AXES,
@@ -25,7 +26,7 @@ async function getClosedTrades(): Promise<Trade[]> {
     console.error('Failed to fetch trades:', error)
     return []
   }
-  return (data ?? []) as Trade[]
+  return parseTrades(data ?? [])
 }
 
 async function getIvHistory(): Promise<IvHistory[]> {

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 import { updateTrade } from '@/app/actions/trades'
-import type { Trade } from '@/types/database'
+import { parseTrade, type Trade } from '@/lib/trade-schema'
 
 const inputClass =
   'w-full bg-[#0a0a0a] border border-[#2a2a2a] text-white rounded-lg px-3 py-2.5 text-sm placeholder-[#444] focus:outline-none focus:ring-1 focus:ring-[#00d4aa] focus:border-[#00d4aa] transition-colors'
@@ -36,7 +36,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
             router.push('/trades')
             return
           }
-          const t = data as Trade
+          const t = parseTrade(data)
           setTrade(t)
           setTradeType(t.trade_type)
         })

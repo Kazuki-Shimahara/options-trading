@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { generateCsv } from '@/lib/csv-export'
 import { requireUserAuth } from '@/lib/api-auth'
-import type { Trade } from '@/types/database'
+import { parseTrades } from '@/lib/trade-schema'
 
 export async function GET() {
   const auth = await requireUserAuth()
@@ -21,7 +21,7 @@ export async function GET() {
     )
   }
 
-  const trades = (data ?? []) as Trade[]
+  const trades = parseTrades(data ?? [])
   const csv = generateCsv(trades)
 
   return new NextResponse(csv, {
