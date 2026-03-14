@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Trade } from '@/types/database'
 import { calculateMaxLoss } from '@/lib/max-loss'
 
 async function getTrades(): Promise<Trade[]> {
+  const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('trades')
     .select('*')

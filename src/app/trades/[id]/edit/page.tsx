@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 import { updateTrade } from '@/app/actions/trades'
 import type { Trade } from '@/types/database'
 
@@ -26,7 +26,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
   useEffect(() => {
     params.then(({ id }) => {
       setTradeId(id)
-      supabase
+      createBrowserSupabaseClient()
         .from('trades')
         .select('*')
         .eq('id', id)
