@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getOpenTrades, getLatestIvRanks } from '@/lib/supabase'
+import { getOpenTrades, getLatestIvRanks } from '@/lib/supabase-server'
 import { IvRankGauge } from '@/components/IvRankGauge'
 import { GreeksSummary } from '@/components/GreeksSummary'
 import { aggregatePortfolioGreeks, calculateDeltaNeutralDeviation } from '@/lib/greeks'

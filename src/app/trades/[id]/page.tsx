@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Trade } from '@/types/database'
 import DeleteButton from './DeleteButton'
 
 async function getTrade(id: string): Promise<Trade | null> {
+  const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('trades')
     .select('*')

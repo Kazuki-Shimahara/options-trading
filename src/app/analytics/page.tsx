@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createServerSupabaseClient } from '@/lib/supabase/server'
 import type { Trade, IvHistory } from '@/types/database'
 import {
   DEFEAT_TAG_CATEGORIES,
@@ -14,6 +14,7 @@ import { PnlChart } from '@/components/PnlChart'
 import IvRankAnalysis from '@/components/IvRankAnalysis'
 
 async function getClosedTrades(): Promise<Trade[]> {
+  const supabase = await createServerSupabaseClient()
   const { data, error } = await supabase
     .from('trades')
     .select('*')
@@ -29,6 +30,7 @@ async function getClosedTrades(): Promise<Trade[]> {
 
 async function getIvHistory(): Promise<IvHistory[]> {
   try {
+    const supabase = await createServerSupabaseClient()
     const { data, error } = await supabase
       .from('iv_history')
       .select('*')

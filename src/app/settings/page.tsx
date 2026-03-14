@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 import { getFilterDescription } from '@/lib/signal-filters'
 import type { UserPreference, TradingStyleValue } from '@/types/database'
 
@@ -20,6 +20,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function loadPreferences() {
+      const supabase = createBrowserSupabaseClient()
       const { data, error } = await supabase
         .from('user_preferences')
         .select('*')
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   async function handleSave() {
     setSaving(true)
     setMessage(null)
+    const supabase = createBrowserSupabaseClient()
 
     if (preferenceId) {
       const { error } = await supabase
