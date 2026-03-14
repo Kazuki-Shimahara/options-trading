@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { isPublicPath } from '@/lib/supabase/auth-config'
 
 export async function middleware(request: NextRequest) {
-  // ローカル開発時は認証をスキップ
-  if (process.env.SKIP_AUTH === 'true') {
+  // ローカル開発時のみ認証をスキップ（本番環境では無視）
+  if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
     return NextResponse.next({ request })
   }
 
