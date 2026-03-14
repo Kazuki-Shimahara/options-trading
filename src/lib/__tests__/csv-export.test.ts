@@ -24,6 +24,7 @@ const baseTrade: Trade = {
   entry_gamma: 0.01,
   entry_theta: -5.0,
   entry_vega: 10.0,
+  is_mini: false,
 }
 
 describe('CSV_HEADERS', () => {

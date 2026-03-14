@@ -11,6 +11,7 @@ import { useFormDraft } from '@/hooks/useFormDraft'
 
 interface TradeDraft {
   tradeType: 'call' | 'put'
+  isMini: boolean
   tradeDate: string
   expiryDate: string
   strikePrice: string
@@ -29,6 +30,7 @@ const DRAFT_KEY = 'draft:new-trade'
 
 const createInitialDraft = (): TradeDraft => ({
   tradeType: 'call',
+  isMini: false,
   tradeDate: new Date().toISOString().split('T')[0],
   expiryDate: '',
   strikePrice: '',
@@ -124,6 +126,7 @@ export default function NewTradePage() {
     const result = await createTrade({
       trade_date: draft.tradeDate,
       trade_type: draft.tradeType,
+      is_mini: draft.isMini,
       strike_price: parseInt(draft.strikePrice),
       expiry_date: draft.expiryDate,
       quantity: parseInt(draft.quantity),
@@ -196,6 +199,24 @@ export default function NewTradePage() {
               ))}
             </div>
             <input type="hidden" name="trade_type" value={draft.tradeType} />
+
+            <label className={`${labelClass} mt-4`}>取引単位</label>
+            <div className="flex gap-2">
+              {([false, true] as const).map((mini) => (
+                <button
+                  key={mini ? 'mini' : 'standard'}
+                  type="button"
+                  onClick={() => updateField('isMini', mini)}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    draft.isMini === mini
+                      ? 'bg-[#00d4aa] text-black'
+                      : 'bg-[#1a1a1a] text-[#555] border border-[#2a2a2a] hover:border-[#333]'
+                  }`}
+                >
+                  {mini ? 'ミニ (×100)' : '通常 (×1000)'}
+                </button>
+              ))}
+            </div>
 
             <div className="grid grid-cols-2 gap-3 mt-4">
               <div>

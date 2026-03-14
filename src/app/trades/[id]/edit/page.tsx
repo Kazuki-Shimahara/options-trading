@@ -22,6 +22,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
   const [error, setError] = useState<string | null>(null)
   const [tradeId, setTradeId] = useState<string | null>(null)
   const [tradeType, setTradeType] = useState<'call' | 'put'>('call')
+  const [isMini, setIsMini] = useState(false)
 
   useEffect(() => {
     params.then(({ id }) => {
@@ -39,6 +40,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
           const t = parseTrade(data)
           setTrade(t)
           setTradeType(t.trade_type)
+          setIsMini(t.is_mini)
         })
     })
   }, [params, router])
@@ -67,6 +69,7 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
       exit_date: exitDateRaw || null,
       iv_at_entry: data.get('iv_at_entry') ? parseFloat(data.get('iv_at_entry') as string) : null,
       memo: (data.get('memo') as string) || null,
+      is_mini: isMini,
     })
 
     if (!result.success) {
@@ -153,6 +156,26 @@ export default function EditTradePage({ params }: { params: Promise<{ id: string
                       }`}
                     >
                       {t.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>取引単位</label>
+                <div className="flex gap-2">
+                  {([false, true] as const).map((mini) => (
+                    <button
+                      key={mini ? 'mini' : 'standard'}
+                      type="button"
+                      onClick={() => setIsMini(mini)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                        isMini === mini
+                          ? 'bg-[#00d4aa] text-black'
+                          : 'bg-[#1a1a1a] text-[#555] border border-[#2a2a2a] hover:border-[#333]'
+                      }`}
+                    >
+                      {mini ? 'ミニ (×100)' : '通常 (×1000)'}
                     </button>
                   ))}
                 </div>

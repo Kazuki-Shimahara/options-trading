@@ -26,6 +26,7 @@ export const createTradeSchema = z.object({
   entry_vega: z.number().nullable(),
   defeat_tags: z.array(z.string()).nullable(),
   market_env_tags: z.array(z.string()).nullable(),
+  is_mini: z.boolean().default(false),
 });
 
 export type CreateTradeInput = z.infer<typeof createTradeSchema>;
@@ -47,6 +48,7 @@ export const updateTradeSchema = z.object({
   exit_date: z.string().nullable(),
   iv_at_entry: z.number().nullable(),
   memo: z.string().nullable(),
+  is_mini: z.boolean().default(false),
 });
 
 export type UpdateTradeInput = z.infer<typeof updateTradeSchema>;
@@ -80,6 +82,7 @@ export const tradeSchema = z.object({
   entry_vega: z.number().nullable(),
   entry_iv_rank: z.number().nullable(),
   entry_iv_hv_ratio: z.number().nullable(),
+  is_mini: z.boolean(),
 });
 
 export type Trade = z.infer<typeof tradeSchema>;

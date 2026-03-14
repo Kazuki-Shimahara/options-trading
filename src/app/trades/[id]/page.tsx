@@ -56,6 +56,11 @@ export default async function TradeDetailPage({
             }`}>
               {trade.trade_type.toUpperCase()}
             </span>
+            {trade.is_mini && (
+              <span className="text-[10px] font-bold px-2 py-1 rounded bg-[#f0b429]/10 text-[#f0b429] border border-[#f0b429]/20">
+                ミニ
+              </span>
+            )}
             <span className={`text-[10px] px-2 py-1 rounded ${
               isOpen
                 ? 'bg-[#f0b429]/10 text-[#f0b429] border border-[#f0b429]/20'
@@ -80,6 +85,7 @@ export default async function TradeDetailPage({
             <Row label="限月（SQ日）">{trade.expiry_date ?? '—'}</Row>
             <Row label="取引日">{trade.trade_date}</Row>
             <Row label="枚数">{trade.quantity} 枚</Row>
+            <Row label="取引単位">{trade.is_mini ? 'ミニ (×100)' : '通常 (×1000)'}</Row>
             <Row label="購入価格">
               <span className="font-mono text-white">{trade.entry_price} 円</span>
             </Row>
