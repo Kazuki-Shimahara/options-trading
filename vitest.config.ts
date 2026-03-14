@@ -6,6 +6,8 @@ export default defineConfig({
     environment: 'node',
     environmentMatchGlobs: [
       ['src/components/**/*.test.tsx', 'jsdom'],
+      ['src/hooks/**/*.test.ts', 'happy-dom'],
+      ['src/hooks/**/*.test.tsx', 'happy-dom'],
     ],
   },
   resolve: {
