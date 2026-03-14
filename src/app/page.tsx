@@ -1,18 +1,30 @@
 import Link from 'next/link'
-import { getOpenTrades, getLatestIvRanks } from '@/lib/supabase-server'
+import { getOpenTrades, getLatestIvRanks, getClosedTradesInMonth } from '@/lib/supabase-server'
 import { IvRankGauge } from '@/components/IvRankGauge'
 import { GreeksSummary } from '@/components/GreeksSummary'
 import { aggregatePortfolioGreeks, calculateDeltaNeutralDeviation } from '@/lib/greeks'
 import type { PositionGreeks } from '@/lib/greeks'
 import { MaxLossSummary } from '@/components/MaxLossSummary'
+import { MonthlyPnlSummary } from '@/components/MonthlyPnlSummary'
 import { calculateTotalMaxLoss } from '@/lib/max-loss'
+import { calculateMonthlyPnl } from '@/lib/monthly-pnl'
 import { DEFAULT_MULTIPLIER } from '@/lib/constants'
 
 export default async function Home() {
-  const [openTrades, ivRanks] = await Promise.all([
+  const now = new Date()
+  const currentMonth = now.getMonth() + 1
+  const currentYear = now.getFullYear()
+  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1
+  const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear
+
+  const [openTrades, ivRanks, thisMonthClosed, prevMonthClosed] = await Promise.all([
     getOpenTrades(),
     getLatestIvRanks(),
+    getClosedTradesInMonth(currentYear, currentMonth),
+    getClosedTradesInMonth(prevYear, prevMonth),
   ])
+
+  const monthlySummary = calculateMonthlyPnl(thisMonthClosed, prevMonthClosed, openTrades)
 
   const openCount = openTrades.length
   const totalPositionValue = openTrades.reduce(
@@ -56,6 +68,11 @@ export default async function Home() {
             <IvRankGauge ivRank={ivRanks.call_iv_rank} label="コール IVランク" />
             <IvRankGauge ivRank={ivRanks.put_iv_rank} label="プット IVランク" />
           </div>
+        </div>
+
+        {/* Monthly PnL Summary */}
+        <div className="mb-4">
+          <MonthlyPnlSummary summary={monthlySummary} month={currentMonth} />
         </div>
 
         {/* Portfolio Greeks Summary */}
