@@ -4,10 +4,10 @@
  * 外部cronサービス（cron-job.org等）から定期的に呼び出される。
  * 取得タイミング: 日中クローズ（15:15 JST）/ 夜間クローズ（翌6:00 JST）
  *
- * 認証: Authorization: Bearer <CRON_SECRET>
+ * 認証: x-api-key ヘッダーで API_SECRET_KEY を検証
  *
  * 処理フロー:
- * 1. CRON_SECRET で認証
+ * 1. API_SECRET_KEY で認証（x-api-keyヘッダー）
  * 2. J-Quants APIからオプション価格（IV含む）を取得
  * 3. ATM IVを算出
  * 4. iv_history テーブルに蓄積
@@ -20,6 +20,7 @@ import { getValidIdToken } from '@/lib/jquants-token'
 import { fetchOptionPrices, type JQuantsOptionPrice } from '@/lib/jquants'
 import { supabase } from '@/lib/supabase'
 import { calculateIvRank, calculateIvPercentile } from '@/lib/iv-calculations'
+import { requireInternalAuth } from '@/lib/api-auth'
 
 /**
  * ATM（At The Money）のIVを算出する
@@ -60,24 +61,9 @@ function calculateAtmIv(options: JQuantsOptionPrice[]): number | null {
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
-  // 1. CRON_SECRET 認証
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    return NextResponse.json(
-      { error: 'CRON_SECRET is not configured' },
-      { status: 401 },
-    )
-  }
-
-  const authHeader = request.headers.get('Authorization')
-  const token = authHeader?.replace('Bearer ', '')
-
-  if (token !== cronSecret) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 },
-    )
-  }
+  // 1. API_SECRET_KEY 認証（x-api-keyヘッダー）
+  const auth = requireInternalAuth(request)
+  if (!auth.authenticated) return auth.response
 
   try {
     // 2. J-Quants APIからオプション価格データを取得

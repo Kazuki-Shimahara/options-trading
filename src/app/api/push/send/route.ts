@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { supabase } from '@/lib/supabase'
+import { requireInternalAuth } from '@/lib/api-auth'
 
 export async function POST(request: Request) {
+  const auth = requireInternalAuth(request)
+  if (!auth.authenticated) return auth.response
+
   const body = await request.json()
   const { title, body: notificationBody } = body
 

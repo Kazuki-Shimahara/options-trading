@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Mock api-auth
+vi.mock('@/lib/api-auth', () => ({
+  requireUserAuth: vi.fn().mockResolvedValue({
+    authenticated: true,
+    userId: 'test-user-id',
+  }),
+}))
+
 // Mock supabase before importing route
 vi.mock('@/lib/supabase', () => ({
   supabase: {

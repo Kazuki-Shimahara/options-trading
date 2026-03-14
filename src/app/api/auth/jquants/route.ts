@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server'
 import { getRefreshToken, getIdToken, JQuantsApiError } from '@/lib/jquants'
 import { saveTokens, getStoredTokens } from '@/lib/jquants-token'
+import { requireUserAuth } from '@/lib/api-auth'
 
 // リフレッシュトークンの有効期間（1週間）
 const REFRESH_TOKEN_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000
@@ -25,6 +26,9 @@ const ID_TOKEN_LIFETIME_MS = 24 * 60 * 60 * 1000
  * 取得したトークンをSupabaseに保存する。
  */
 export async function POST(request: Request) {
+  const auth = await requireUserAuth()
+  if (!auth.authenticated) return auth.response
+
   try {
     const body = (await request.json()) as {
       mailAddress?: string
@@ -93,6 +97,9 @@ export async function POST(request: Request) {
  * トークンの有効期限と、期限切れかどうかを確認できる。
  */
 export async function GET() {
+  const auth = await requireUserAuth()
+  if (!auth.authenticated) return auth.response
+
   try {
     const stored = await getStoredTokens()
 

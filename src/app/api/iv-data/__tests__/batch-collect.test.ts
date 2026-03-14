@@ -35,10 +35,10 @@ describe('GET /api/iv-data/batch-collect', () => {
   beforeEach(() => {
     vi.resetAllMocks()
     // Set CRON_SECRET env var
-    process.env.CRON_SECRET = 'test-secret-123'
+    process.env.API_SECRET_KEY = 'test-secret-123'
   })
 
-  it('CRON_SECRETなしのリクエストは401を返す', async () => {
+  it('x-api-keyなしのリクエストは401を返す', async () => {
     const request = createRequest()
     const response = await GET(request)
 
@@ -47,16 +47,16 @@ describe('GET /api/iv-data/batch-collect', () => {
     expect(body.error).toBeDefined()
   })
 
-  it('不正なCRON_SECRETのリクエストは401を返す', async () => {
+  it('不正なx-api-keyのリクエストは401を返す', async () => {
     const request = createRequest({
-      Authorization: 'Bearer wrong-secret',
+      'x-api-key': 'wrong-secret',
     })
     const response = await GET(request)
 
     expect(response.status).toBe(401)
   })
 
-  it('正しいCRON_SECRETで認証が通る', async () => {
+  it('正しいx-api-keyで認証が通る', async () => {
     // Setup mocks for successful flow
     mockedGetValidIdToken.mockResolvedValue('mock-id-token')
     mockedFetchOptionPrices.mockResolvedValue([
@@ -107,7 +107,7 @@ describe('GET /api/iv-data/batch-collect', () => {
     }) as ReturnType<typeof vi.fn>
 
     const request = createRequest({
-      Authorization: 'Bearer test-secret-123',
+      'x-api-key': 'test-secret-123',
     })
     const response = await GET(request)
 
@@ -125,7 +125,7 @@ describe('GET /api/iv-data/batch-collect', () => {
     )
 
     const request = createRequest({
-      Authorization: 'Bearer test-secret-123',
+      'x-api-key': 'test-secret-123',
     })
     const response = await GET(request)
 
@@ -134,11 +134,11 @@ describe('GET /api/iv-data/batch-collect', () => {
     expect(body.error).toBeDefined()
   })
 
-  it('CRON_SECRET環境変数が未設定の場合は401を返す', async () => {
-    delete process.env.CRON_SECRET
+  it('API_SECRET_KEY環境変数が未設定の場合は401を返す', async () => {
+    delete process.env.API_SECRET_KEY
 
     const request = createRequest({
-      Authorization: 'Bearer test-secret-123',
+      'x-api-key': 'test-secret-123',
     })
     const response = await GET(request)
 
@@ -161,7 +161,7 @@ describe('GET /api/iv-data/batch-collect', () => {
     }) as ReturnType<typeof vi.fn>
 
     const request = createRequest({
-      Authorization: 'Bearer test-secret-123',
+      'x-api-key': 'test-secret-123',
     })
     const response = await GET(request)
 
