@@ -120,6 +120,14 @@ export async function updateTrade(
   }
 
   const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "認証が必要です" };
+  }
+
   const pnl = calculatePnl(data.exit_price, data.entry_price, data.quantity);
 
   const { error } = await supabase
@@ -155,6 +163,14 @@ export async function deleteTrade(id: string): Promise<TradeActionResult> {
   }
 
   const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "認証が必要です" };
+  }
+
   const { error } = await supabase.from("trades").delete().eq("id", id);
 
   if (error) {
