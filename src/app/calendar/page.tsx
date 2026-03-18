@@ -222,6 +222,22 @@ export default function CalendarPage() {
           </div>
         </div>
 
+        {/* IV Crush analysis link */}
+        <Link
+          href="/calendar/iv-crush"
+          className="block mb-4 bg-[#111] border border-[#1e1e1e] rounded-xl p-4 hover:border-[#00d4aa]/30 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-white">IV Crush分析</h3>
+              <p className="text-[10px] text-[#555] mt-0.5">
+                SQ・FOMC・日銀会合前後のIV変動パターンを可視化
+              </p>
+            </div>
+            <span className="text-[#00d4aa] text-sm">→</span>
+          </div>
+        </Link>
+
         {/* Event list */}
         <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
           <h2 className="text-[10px] font-medium text-[#00d4aa]/70 uppercase tracking-wider mb-3">
