@@ -173,6 +173,8 @@ describe("tradeSchema (full Trade row)", () => {
     entry_iv_rank: null,
     entry_iv_hv_ratio: null,
     is_mini: false,
+    playbook_id: null,
+    playbook_compliance: null,
   };
 
   it("should parse a valid Trade row", () => {
