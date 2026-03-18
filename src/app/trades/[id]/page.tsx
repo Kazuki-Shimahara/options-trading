@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { parseTrade, type Trade } from '@/lib/trade-schema'
+import { calculatePOP } from '@/lib/pop'
 import DeleteButton from './DeleteButton'
 
 async function getTrade(id: string): Promise<Trade | null> {
@@ -28,6 +29,29 @@ export default async function TradeDetailPage({
 
   const isOpen = trade.status === 'open'
   const isCall = trade.trade_type === 'call'
+
+  // POP計算（IV・デルタ情報がある場合）
+  let pop: number | null = null
+  if (trade.iv_at_entry !== null && trade.expiry_date) {
+    const now = new Date()
+    const expiry = new Date(trade.expiry_date)
+    const diffMs = expiry.getTime() - now.getTime()
+    const timeToExpiry = diffMs / (1000 * 60 * 60 * 24 * 365)
+
+    if (timeToExpiry > 0) {
+      pop = calculatePOP({
+        spot: trade.strike_price, // 近似: ストライク価格を原資産として使用
+        strike: trade.strike_price,
+        entryPrice: trade.entry_price,
+        timeToExpiry,
+        volatility: trade.iv_at_entry / 100,
+        riskFreeRate: 0.001,
+        dividendYield: 0.02,
+        optionType: trade.trade_type,
+        side: 'buy',
+      })
+    }
+  }
 
   return (
     <main className="min-h-screen px-4 pt-2 pb-4">
@@ -100,6 +124,13 @@ export default async function TradeDetailPage({
             {trade.iv_at_entry !== null && (
               <Row label="IV">
                 <span className="font-mono text-[#00d4aa]">{trade.iv_at_entry}%</span>
+              </Row>
+            )}
+            {pop !== null && (
+              <Row label="POP（利益確率）">
+                <span className={`font-mono font-semibold ${pop >= 50 ? 'text-[#00d4aa]' : 'text-[#f0b429]'}`}>
+                  {pop}%
+                </span>
               </Row>
             )}
           </div>
