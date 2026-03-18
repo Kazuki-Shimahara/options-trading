@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createTrade } from '@/app/actions/trades'
 import { calculateGreeks, type Greeks } from '@/lib/greeks'
 import type { BSInputs } from '@/lib/black-scholes'
+import { calculatePOP } from '@/lib/pop'
 import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { DatePicker } from '@/components/DatePicker'
@@ -69,6 +70,7 @@ export default function NewTradePage() {
   const [error, setError] = useState<string | null>(null)
   const { values: draft, hasDraft, updateValues: updateDraft, clearDraft } = useFormDraft<TradeDraft>(DRAFT_KEY, createInitialDraft())
   const [greeks, setGreeks] = useState<Greeks | null>(null)
+  const [pop, setPop] = useState<number | null>(null)
   const [playbooks, setPlaybooks] = useState<SimplePlaybook[]>([])
 
   useEffect(() => {
@@ -102,6 +104,7 @@ export default function NewTradePage() {
 
     if (timeToExpiry <= 0) {
       setGreeks(null)
+      setPop(null)
       return
     }
 
@@ -118,10 +121,29 @@ export default function NewTradePage() {
     try {
       const result = calculateGreeks(inputs)
       setGreeks(result)
+
+      const entryPrice = parseFloat(draft.entryPrice)
+      if (entryPrice > 0) {
+        const popValue = calculatePOP({
+          spot,
+          strike,
+          entryPrice,
+          timeToExpiry,
+          volatility: iv / 100,
+          riskFreeRate: 0.001,
+          dividendYield: 0.02,
+          optionType: draft.tradeType,
+          side: 'buy',
+        })
+        setPop(popValue)
+      } else {
+        setPop(null)
+      }
     } catch {
       setGreeks(null)
+      setPop(null)
     }
-  }, [draft.spotPrice, draft.strikePrice, draft.ivAtEntry, draft.expiryDate, draft.tradeType])
+  }, [draft.spotPrice, draft.strikePrice, draft.ivAtEntry, draft.expiryDate, draft.tradeType, draft.entryPrice])
 
   useEffect(() => {
     computeGreeks()
@@ -352,7 +374,7 @@ export default function NewTradePage() {
             </div>
           </div>
 
-          {/* Greeks */}
+          {/* Greeks & POP */}
           {greeks && (
             <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
               <h2 className={labelClass}>Greeks（自動計算）</h2>
@@ -371,6 +393,22 @@ export default function NewTradePage() {
                   </div>
                 ))}
               </div>
+              {pop !== null && (
+                <div className="mt-3 bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-[#00d4aa]/70 uppercase tracking-wider">POP（利益確率）</span>
+                    <span className={`text-lg font-mono font-bold ${pop >= 50 ? 'text-[#00d4aa]' : 'text-[#f0b429]'}`}>
+                      {pop}%
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 bg-[#1a1a1a] rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${pop >= 50 ? 'bg-[#00d4aa]' : 'bg-[#f0b429]'}`}
+                      style={{ width: `${pop}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               <p className="text-[10px] text-[#444] mt-2">
                 r=0.1%, q=2.0% で計算
               </p>

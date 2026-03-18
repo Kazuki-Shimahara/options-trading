@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { parseTrades, type Trade } from '@/lib/trade-schema'
 import { calculateMaxLoss } from '@/lib/max-loss'
+import { calculatePOP } from '@/lib/pop'
 import { parseTradeFilterParams, buildTradeFilterQuery } from '@/lib/trade-filters'
 import TradeFilters from '@/components/TradeFilters'
 
@@ -201,6 +202,28 @@ export default async function TradesPage({
                         <span className="text-[10px] text-[#ff6b6b]/70 tabular-nums">
                           最大損失 {calculateMaxLoss(trade).toLocaleString()}円
                         </span>
+                        {trade.iv_at_entry !== null && trade.expiry_date && (() => {
+                          const now = new Date()
+                          const expiry = new Date(trade.expiry_date)
+                          const timeToExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365)
+                          if (timeToExpiry <= 0) return null
+                          const pop = calculatePOP({
+                            spot: trade.strike_price,
+                            strike: trade.strike_price,
+                            entryPrice: trade.entry_price,
+                            timeToExpiry,
+                            volatility: trade.iv_at_entry! / 100,
+                            riskFreeRate: 0.001,
+                            dividendYield: 0.02,
+                            optionType: trade.trade_type,
+                            side: 'buy',
+                          })
+                          return (
+                            <span className={`text-[10px] tabular-nums ${pop >= 50 ? 'text-[#00d4aa]/70' : 'text-[#f0b429]/70'}`}>
+                              POP {pop}%
+                            </span>
+                          )
+                        })()}
                       </div>
                     )}
                     <span className="text-[#333] group-hover:text-[#555] transition-colors text-sm flex-shrink-0">›</span>
