@@ -13,6 +13,8 @@ import VolatilitySkewChart from '@/components/VolatilitySkewChart'
 import { buildPnlChartData } from '@/lib/pnl-chart-data'
 import { PnlChart } from '@/components/PnlChart'
 import IvRankAnalysis from '@/components/IvRankAnalysis'
+import { tradesToPayoffPositions } from '@/lib/payoff'
+import { PayoffDiagram } from '@/components/PayoffDiagram'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
@@ -24,6 +26,21 @@ async function getClosedTrades(): Promise<Trade[]> {
 
   if (error) {
     console.error('Failed to fetch trades:', error)
+    return []
+  }
+  return parseTrades(data ?? [])
+}
+
+async function getOpenTrades(): Promise<Trade[]> {
+  const supabase = await createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from('trades')
+    .select('*')
+    .eq('status', 'open')
+    .order('trade_date', { ascending: true })
+
+  if (error) {
+    console.error('Failed to fetch open trades:', error)
     return []
   }
   return parseTrades(data ?? [])
@@ -48,14 +65,16 @@ async function getIvHistory(): Promise<IvHistory[]> {
 }
 
 export default async function AnalyticsPage() {
-  const [trades, ivHistory] = await Promise.all([
+  const [trades, openTrades, ivHistory] = await Promise.all([
     getClosedTrades(),
+    getOpenTrades(),
     getIvHistory(),
   ])
   const chartData = buildPnlChartData(trades)
   const skewTimeSeries = buildSkewTimeSeries(ivHistory)
   const defeatAgg = aggregateDefeatTags(trades)
   const marketEnvAgg = aggregateMarketEnvTags(trades)
+  const payoffPositions = tradesToPayoffPositions(openTrades)
 
   const totalTrades = trades.length
   const wins = trades.filter((t) => t.pnl != null && t.pnl >= 0).length
@@ -95,6 +114,14 @@ export default async function AnalyticsPage() {
         </div>
 
         <PnlChart data={chartData} />
+
+        <section className="mb-6">
+          <h2 className="text-sm font-semibold text-white mb-3">ペイオフダイアグラム</h2>
+          <p className="text-[10px] text-[#666] mb-3">
+            オープンポジションの満期損益図（{openTrades.length}件）
+          </p>
+          <PayoffDiagram positions={payoffPositions} />
+        </section>
 
         <section className="mb-6">
           <h2 className="text-sm font-semibold text-white mb-3">
