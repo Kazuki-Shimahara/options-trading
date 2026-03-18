@@ -142,7 +142,7 @@ export default async function Home() {
         </div>
 
         {/* Quick Links */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Link
             href="/trades"
             className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 hover:bg-[#1a1a1a] transition-colors"
@@ -157,6 +157,14 @@ export default async function Home() {
           >
             <h2 className="text-sm font-semibold text-black mb-0.5">取引を記録</h2>
             <p className="text-[10px] text-black/60">新規エントリー</p>
+          </Link>
+
+          <Link
+            href="/playbooks"
+            className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 hover:bg-[#1a1a1a] transition-colors"
+          >
+            <h2 className="text-sm font-semibold text-white mb-0.5">Playbook</h2>
+            <p className="text-[10px] text-[#666]">取引ルール・遵守率</p>
           </Link>
 
           <Link

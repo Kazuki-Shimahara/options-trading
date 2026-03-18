@@ -10,6 +10,14 @@ import { calculatePOP } from '@/lib/pop'
 import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { DatePicker } from '@/components/DatePicker'
+import { createBrowserSupabaseClient } from '@/lib/supabase/client'
+import type { PlaybookRule } from '@/types/database'
+
+interface SimplePlaybook {
+  id: string
+  name: string
+  rules: PlaybookRule[]
+}
 
 interface TradeDraft {
   tradeType: 'call' | 'put'
@@ -26,6 +34,8 @@ interface TradeDraft {
   memo: string
   defeatTags: string[]
   marketEnvTags: string[]
+  playbookId: string
+  playbookCompliance: boolean | null
 }
 
 const DRAFT_KEY = 'draft:new-trade'
@@ -45,6 +55,8 @@ const createInitialDraft = (): TradeDraft => ({
   memo: '',
   defeatTags: [],
   marketEnvTags: [],
+  playbookId: '',
+  playbookCompliance: null,
 })
 
 const inputClass =
@@ -59,6 +71,17 @@ export default function NewTradePage() {
   const { values: draft, hasDraft, updateValues: updateDraft, clearDraft } = useFormDraft<TradeDraft>(DRAFT_KEY, createInitialDraft())
   const [greeks, setGreeks] = useState<Greeks | null>(null)
   const [pop, setPop] = useState<number | null>(null)
+  const [playbooks, setPlaybooks] = useState<SimplePlaybook[]>([])
+
+  useEffect(() => {
+    createBrowserSupabaseClient()
+      .from('playbooks')
+      .select('id, name, rules')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setPlaybooks(data as SimplePlaybook[])
+      })
+  }, [])
 
   const updateField = <K extends keyof TradeDraft>(key: K, value: TradeDraft[K]) => {
     updateDraft({ ...draft, [key]: value })
@@ -164,6 +187,8 @@ export default function NewTradePage() {
       entry_vega: greeks?.vega ?? null,
       defeat_tags: draft.defeatTags.length > 0 ? draft.defeatTags : null,
       market_env_tags: draft.marketEnvTags.length > 0 ? draft.marketEnvTags : null,
+      playbook_id: draft.playbookId || null,
+      playbook_compliance: draft.playbookId ? draft.playbookCompliance : null,
     })
 
     if (!result.success) {
@@ -415,6 +440,67 @@ export default function NewTradePage() {
               </div>
             ))}
           </div>
+
+          {/* Playbook Selection */}
+          {playbooks.length > 0 && (
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+              <h2 className={labelClass}>Playbook</h2>
+              <select
+                value={draft.playbookId}
+                onChange={(e) => {
+                  updateField('playbookId', e.target.value)
+                  if (!e.target.value) updateField('playbookCompliance', null)
+                }}
+                className={`${inputClass} appearance-none`}
+              >
+                <option value="">選択なし</option>
+                {playbooks.map((pb) => (
+                  <option key={pb.id} value={pb.id}>
+                    {pb.name}
+                  </option>
+                ))}
+              </select>
+
+              {draft.playbookId && (() => {
+                const selected = playbooks.find((pb) => pb.id === draft.playbookId)
+                if (!selected) return null
+                return (
+                  <div className="space-y-2">
+                    <div className="bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg p-3">
+                      <p className="text-[10px] text-[#888] mb-2">ルール一覧:</p>
+                      {selected.rules.map((rule) => (
+                        <p key={rule.id} className="text-xs text-[#ccc] mb-1">
+                          - {rule.description}
+                        </p>
+                      ))}
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#888] mb-1">ルール遵守</label>
+                      <div className="flex gap-2">
+                        {([
+                          { value: true, label: '遵守', color: 'bg-[#00d4aa] text-black' },
+                          { value: false, label: '違反', color: 'bg-[#ff6b6b] text-white' },
+                        ] as const).map((opt) => (
+                          <button
+                            key={String(opt.value)}
+                            type="button"
+                            onClick={() => updateField('playbookCompliance', opt.value)}
+                            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                              draft.playbookCompliance === opt.value
+                                ? opt.color
+                                : 'bg-[#1a1a1a] text-[#555] border border-[#2a2a2a] hover:border-[#333]'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          )}
 
           {/* Defeat Tags */}
           <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">

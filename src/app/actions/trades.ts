@@ -55,6 +55,8 @@ export async function createTrade(
     entry_theta: data.entry_theta,
     entry_vega: data.entry_vega,
     is_mini: data.is_mini,
+    playbook_id: data.playbook_id,
+    playbook_compliance: data.playbook_compliance,
   });
 
   if (error) {
@@ -107,6 +109,8 @@ export async function updateTrade(
       memo: data.memo,
       status: data.exit_price !== null ? "closed" : "open",
       is_mini: data.is_mini,
+      playbook_id: data.playbook_id,
+      playbook_compliance: data.playbook_compliance,
     })
     .eq("id", id);
 
