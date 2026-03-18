@@ -27,6 +27,8 @@ export const createTradeSchema = z.object({
   defeat_tags: z.array(z.string()).nullable(),
   market_env_tags: z.array(z.string()).nullable(),
   is_mini: z.boolean().default(false),
+  playbook_id: z.string().nullable().default(null),
+  playbook_compliance: z.boolean().nullable().default(null),
 });
 
 export type CreateTradeInput = z.infer<typeof createTradeSchema>;
@@ -49,6 +51,8 @@ export const updateTradeSchema = z.object({
   iv_at_entry: z.number().nullable(),
   memo: z.string().nullable(),
   is_mini: z.boolean().default(false),
+  playbook_id: z.string().nullable().default(null),
+  playbook_compliance: z.boolean().nullable().default(null),
 });
 
 export type UpdateTradeInput = z.infer<typeof updateTradeSchema>;
@@ -83,6 +87,8 @@ export const tradeSchema = z.object({
   entry_iv_rank: z.number().nullable(),
   entry_iv_hv_ratio: z.number().nullable(),
   is_mini: z.boolean(),
+  playbook_id: z.string().nullable(),
+  playbook_compliance: z.boolean().nullable(),
 });
 
 export type Trade = z.infer<typeof tradeSchema>;

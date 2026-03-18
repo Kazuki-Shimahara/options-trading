@@ -25,6 +25,8 @@ const baseTrade: Trade = {
   entry_theta: -5.0,
   entry_vega: 10.0,
   is_mini: false,
+    playbook_id: null,
+    playbook_compliance: null,
 }
 
 describe('CSV_HEADERS', () => {

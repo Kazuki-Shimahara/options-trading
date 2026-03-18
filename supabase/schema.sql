@@ -24,7 +24,9 @@ create table if not exists trades (
   market_env_tags text[],
   entry_iv_rank numeric(5, 2),
   entry_iv_hv_ratio numeric(8, 4),
-  is_mini boolean not null default false
+  is_mini boolean not null default false,
+  playbook_id uuid,
+  playbook_compliance boolean
 );
 
 -- ミニオプション対応マイグレーション（既存テーブルへの適用）
@@ -167,3 +169,47 @@ create policy "Users can insert own preferences" on user_preferences
 create policy "Users can update own preferences" on user_preferences
   for update using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- =============================================
+-- Playbookテーブル（取引ルール定義）
+-- =============================================
+create table if not exists playbooks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id),
+  name text not null,
+  rules jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- updated_at を自動更新するトリガー
+create trigger playbooks_updated_at
+  before update on playbooks
+  for each row execute function update_updated_at();
+
+-- インデックス
+create index if not exists playbooks_user_id_idx on playbooks (user_id);
+
+-- RLS
+alter table playbooks enable row level security;
+
+-- playbooks RLSポリシー: ユーザーは自分のPlaybookのみ操作可能
+create policy "Users can select own playbooks" on playbooks
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own playbooks" on playbooks
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own playbooks" on playbooks
+  for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own playbooks" on playbooks
+  for delete using (auth.uid() = user_id);
+
+-- trades テーブルに playbook 関連カラムを追加（マイグレーション）
+-- ALTER TABLE trades ADD COLUMN IF NOT EXISTS playbook_id uuid;
+-- ALTER TABLE trades ADD COLUMN IF NOT EXISTS playbook_compliance boolean;
+
+-- trades.playbook_id の外部キー制約
+-- ALTER TABLE trades ADD CONSTRAINT trades_playbook_id_fkey FOREIGN KEY (playbook_id) REFERENCES playbooks(id) ON DELETE SET NULL;

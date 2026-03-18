@@ -27,6 +27,8 @@ export interface Trade {
   entry_iv_rank: number | null;
   entry_iv_hv_ratio: number | null;
   is_mini: boolean;
+  playbook_id: string | null;
+  playbook_compliance: boolean | null;
 }
 
 export type OptionType = "call" | "put";
@@ -77,6 +79,23 @@ export interface UserPreference {
   updated_at: string;
 }
 
+export type PlaybookRuleCategory = "entry" | "position_size" | "stop_loss";
+
+export interface PlaybookRule {
+  id: string;
+  category: PlaybookRuleCategory;
+  description: string;
+}
+
+export interface Playbook {
+  id: string;
+  user_id: string | null;
+  name: string;
+  rules: PlaybookRule[];
+  created_at: string;
+  updated_at: string;
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -115,6 +134,12 @@ export type Database = {
         Update: Partial<
           Omit<UserPreference, "id" | "created_at" | "updated_at">
         >;
+        Relationships: [];
+      };
+      playbooks: {
+        Row: Playbook;
+        Insert: Omit<Playbook, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Playbook, "id" | "created_at" | "updated_at">>;
         Relationships: [];
       };
     };
