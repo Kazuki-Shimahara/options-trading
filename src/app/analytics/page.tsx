@@ -15,6 +15,7 @@ import { PnlChart } from '@/components/PnlChart'
 import IvRankAnalysis from '@/components/IvRankAnalysis'
 import { tradesToPayoffPositions } from '@/lib/payoff'
 import { PayoffDiagram } from '@/components/PayoffDiagram'
+import { calculatePerformanceSummary } from '@/lib/performance-metrics'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
@@ -81,6 +82,8 @@ export default async function AnalyticsPage() {
   const losses = trades.filter((t) => t.pnl != null && t.pnl < 0).length
   const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(1) : '0.0'
 
+  const perfSummary = calculatePerformanceSummary(trades)
+
   const defeatTagsWithCount = defeatAgg.filter((d) => d.count > 0)
   const maxDefeatCount = defeatTagsWithCount.length > 0 ? defeatTagsWithCount[0].count : 0
 
@@ -112,6 +115,41 @@ export default async function AnalyticsPage() {
             <div className="text-xl font-bold text-white">{winRate}%</div>
           </div>
         </div>
+
+        {/* Performance Metrics */}
+        <section className="mb-4">
+          <h2 className="text-sm font-semibold text-white mb-3">パフォーマンス指標</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3 text-center">
+              <div className="text-[10px] text-[#888] mb-0.5">Sharpe比</div>
+              <div className="text-xl font-bold text-white">
+                {perfSummary.sharpeRatio.toFixed(2)}
+              </div>
+            </div>
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3 text-center">
+              <div className="text-[10px] text-[#888] mb-0.5">最大DD</div>
+              <div className="text-xl font-bold text-[#ff6b6b]">
+                {perfSummary.maxDrawdown > 0
+                  ? `-${perfSummary.maxDrawdown.toLocaleString()}円`
+                  : '0円'}
+              </div>
+            </div>
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3 text-center">
+              <div className="text-[10px] text-[#888] mb-0.5">Profit Factor</div>
+              <div className="text-xl font-bold text-white">
+                {perfSummary.profitFactor === Infinity
+                  ? '∞'
+                  : perfSummary.profitFactor.toFixed(2)}
+              </div>
+            </div>
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-3 text-center">
+              <div className="text-[10px] text-[#888] mb-0.5">Kelly基準</div>
+              <div className="text-xl font-bold text-white">
+                {(perfSummary.kellyCriterion * 100).toFixed(1)}%
+              </div>
+            </div>
+          </div>
+        </section>
 
         <PnlChart data={chartData} />
 
