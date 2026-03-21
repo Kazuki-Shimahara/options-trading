@@ -104,7 +104,8 @@ describe('GET /api/iv-data/batch-collect', () => {
         }
       }
       return { select: vi.fn(), insert: vi.fn() }
-    }) as ReturnType<typeof vi.fn>
+    }// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any
 
     const request = createRequest({
       'x-api-key': 'test-secret-123',
@@ -158,7 +159,8 @@ describe('GET /api/iv-data/batch-collect', () => {
         }),
       }),
       insert: vi.fn().mockResolvedValue({ data: null, error: null }),
-    }) as ReturnType<typeof vi.fn>
+    }// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any
 
     const request = createRequest({
       'x-api-key': 'test-secret-123',

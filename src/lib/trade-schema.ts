@@ -112,5 +112,5 @@ export function parseTrade(data: unknown): Trade {
  * Extract first error message from a ZodError for user-facing display.
  */
 export function getZodErrorMessage(error: z.ZodError): string {
-  return error.errors[0]?.message ?? "入力データが不正です";
+  return error.issues[0]?.message ?? "入力データが不正です";
 }

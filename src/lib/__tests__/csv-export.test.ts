@@ -4,7 +4,7 @@ import type { Trade } from '@/types/database'
 
 const baseTrade: Trade = {
   id: '1',
-  user_id: null,
+  user_id: 'test-user',
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
   trade_date: '2024-01-15',
@@ -25,8 +25,11 @@ const baseTrade: Trade = {
   entry_theta: -5.0,
   entry_vega: 10.0,
   is_mini: false,
-    playbook_id: null,
-    playbook_compliance: null,
+  market_env_tags: null,
+  entry_iv_rank: null,
+  entry_iv_hv_ratio: null,
+  playbook_id: null,
+  playbook_compliance: null,
 }
 
 describe('CSV_HEADERS', () => {

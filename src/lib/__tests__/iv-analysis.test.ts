@@ -5,7 +5,7 @@ import type { Trade } from '@/types/database'
 function makeTrade(overrides: Partial<Trade> = {}): Trade {
   return {
     id: 'test-id',
-    user_id: null,
+    user_id: 'test-user',
     created_at: '2025-01-01T00:00:00Z',
     updated_at: '2025-01-01T00:00:00Z',
     trade_date: '2025-01-01',
@@ -28,6 +28,7 @@ function makeTrade(overrides: Partial<Trade> = {}): Trade {
     entry_iv_rank: null,
     entry_iv_hv_ratio: null,
     is_mini: false,
+    market_env_tags: null,
     playbook_id: null,
     playbook_compliance: null,
     ...overrides,
