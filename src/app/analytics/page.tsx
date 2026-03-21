@@ -18,6 +18,7 @@ import { calculatePerformanceSummary } from '@/lib/performance-metrics'
 import TimeSeriesAnalysis from '@/components/TimeSeriesAnalysis'
 import StreakAnalysis from '@/components/StreakAnalysis'
 import ScoreBandAnalysis from '@/components/ScoreBandAnalysis'
+import MonteCarloSimulation from '@/components/MonteCarloSimulation'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
@@ -78,6 +79,11 @@ export default async function AnalyticsPage() {
   const defeatAgg = aggregateDefeatTags(trades)
   const marketEnvAgg = aggregateMarketEnvTags(trades)
   const payoffPositions = tradesToPayoffPositions(openTrades)
+
+  // モンテカルロ用のPnLデータ（決済済み取引の損益）
+  const pnlHistory = trades
+    .filter((t) => t.pnl != null)
+    .map((t) => t.pnl as number)
 
   const totalTrades = trades.length
   const wins = trades.filter((t) => t.pnl != null && t.pnl >= 0).length
@@ -164,6 +170,14 @@ export default async function AnalyticsPage() {
         </section>
 
         <TimeSeriesAnalysis trades={trades} />
+
+        <section className="mb-6">
+          <h2 className="text-sm font-semibold text-white mb-3">モンテカルロシミュレーション（VaR/CVaR）</h2>
+          <p className="text-[10px] text-[#666] mb-3">
+            過去の損益データからリスク指標を算出
+          </p>
+          <MonteCarloSimulation pnlHistory={pnlHistory} />
+        </section>
 
         <section className="mb-6">
           <h2 className="text-sm font-semibold text-white mb-3">
