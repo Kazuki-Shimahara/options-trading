@@ -16,6 +16,7 @@ import { tradesToPayoffPositions } from '@/lib/payoff'
 import { PayoffDiagram } from '@/components/PayoffDiagram'
 import { calculatePerformanceSummary } from '@/lib/performance-metrics'
 import TimeSeriesAnalysis from '@/components/TimeSeriesAnalysis'
+import StreakAnalysis from '@/components/StreakAnalysis'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
@@ -172,6 +173,16 @@ export default async function AnalyticsPage() {
 
         <section className="mb-6">
           <VolatilitySkewChart data={skewTimeSeries} />
+        </section>
+
+        <section className="mb-6">
+          <h2 className="text-sm font-semibold text-white mb-3">
+            連勝/連敗心理分析
+          </h2>
+          <p className="text-[10px] text-[#666] mb-3">
+            メンタル状態の定量化とリベンジトレード検出
+          </p>
+          <StreakAnalysis trades={trades} />
         </section>
 
         {totalTrades === 0 ? (
