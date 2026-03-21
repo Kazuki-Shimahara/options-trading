@@ -17,6 +17,7 @@ import { PayoffDiagram } from '@/components/PayoffDiagram'
 import { calculatePerformanceSummary } from '@/lib/performance-metrics'
 import TimeSeriesAnalysis from '@/components/TimeSeriesAnalysis'
 import StreakAnalysis from '@/components/StreakAnalysis'
+import ScoreBandAnalysis from '@/components/ScoreBandAnalysis'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
@@ -169,6 +170,16 @@ export default async function AnalyticsPage() {
             勝率 x IVランク相関分析
           </h2>
           <IvRankAnalysis trades={trades} />
+        </section>
+
+        <section className="mb-6">
+          <h2 className="text-sm font-semibold text-white mb-3">
+            エントリー品質スコア別実績
+          </h2>
+          <p className="text-[10px] text-[#666] mb-3">
+            IVランク帯別の勝率・平均損益を分析
+          </p>
+          <ScoreBandAnalysis trades={trades} />
         </section>
 
         <section className="mb-6">

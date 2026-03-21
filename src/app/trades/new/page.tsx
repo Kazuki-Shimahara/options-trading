@@ -7,6 +7,9 @@ import { createTrade } from '@/app/actions/trades'
 import { calculateGreeks, type Greeks } from '@/lib/greeks'
 import type { BSInputs } from '@/lib/black-scholes'
 import { calculatePOP } from '@/lib/pop'
+import { getEventsInRange } from '@/lib/events'
+import type { EntryFeatures } from '@/lib/entry-quality-scoring'
+import EntryQualityScore from '@/components/EntryQualityScore'
 import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { DatePicker } from '@/components/DatePicker'
@@ -136,6 +139,39 @@ export default function NewTradePage() {
       return { greeks: null, pop: null }
     }
   }, [draft.spotPrice, draft.strikePrice, draft.ivAtEntry, draft.expiryDate, draft.tradeType, draft.entryPrice])
+
+  const entryFeatures: EntryFeatures | null = useMemo(() => {
+    const ivRank = parseFloat(draft.ivAtEntry)
+    if (!ivRank || !draft.tradeDate) return null
+
+    const tradeDate = new Date(draft.tradeDate)
+    const dayOfWeek = tradeDate.getDay()
+
+    // Check for events within 3 days before/after trade date
+    const threeDaysBefore = new Date(tradeDate)
+    threeDaysBefore.setDate(threeDaysBefore.getDate() - 3)
+    const threeDaysAfter = new Date(tradeDate)
+    threeDaysAfter.setDate(threeDaysAfter.getDate() + 3)
+
+    const nearbyEvents = getEventsInRange(threeDaysBefore, threeDaysAfter)
+    const isPreEvent = nearbyEvents.some(
+      (e) => e.date.getTime() > tradeDate.getTime() && e.importance === 'high'
+    )
+    const isPostEvent = nearbyEvents.some(
+      (e) => e.date.getTime() < tradeDate.getTime() && e.importance === 'high'
+    )
+
+    return {
+      ivRank,
+      ivPercentile: ivRank, // Use IV rank as proxy when percentile unavailable
+      pcr: 1.0, // Default; future: fetch from market data
+      skew: 0, // Default; future: compute from IV surface
+      dayOfWeek,
+      isPreEvent,
+      isPostEvent,
+    }
+  }, [draft.ivAtEntry, draft.tradeDate])
+
 
   function toggleDefeatTag(tag: string) {
     const prev = draft.defeatTags
@@ -400,6 +436,14 @@ export default function NewTradePage() {
               <p className="text-[10px] text-[#444] mt-2">
                 r=0.1%, q=2.0% で計算
               </p>
+            </div>
+          )}
+
+          {/* Entry Quality Score */}
+          {entryFeatures && (
+            <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4">
+              <h2 className={labelClass}>エントリー品質</h2>
+              <EntryQualityScore features={entryFeatures} />
             </div>
           )}
 
