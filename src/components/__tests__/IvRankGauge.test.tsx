@@ -14,7 +14,7 @@ describe('IvRankGauge', () => {
     expect(screen.getByText('20.0')).toBeDefined()
     expect(screen.getByText('買い好機')).toBeDefined()
     const gauge = screen.getByTestId('iv-gauge-bar')
-    expect(gauge.className).toContain('bg-emerald-500')
+    expect(gauge.className).toContain('bg-[#00d4aa]')
   })
 
   it('25-75未満の値でグレー（中立）を表示する', () => {
@@ -22,7 +22,7 @@ describe('IvRankGauge', () => {
     expect(screen.getByText('50.0')).toBeDefined()
     expect(screen.getByText('中立')).toBeDefined()
     const gauge = screen.getByTestId('iv-gauge-bar')
-    expect(gauge.className).toContain('bg-slate-500')
+    expect(gauge.className).toContain('bg-[#888]')
   })
 
   it('75以上の値で赤色（売り好機）を表示する', () => {
@@ -30,21 +30,21 @@ describe('IvRankGauge', () => {
     expect(screen.getByText('85.0')).toBeDefined()
     expect(screen.getByText('売り好機')).toBeDefined()
     const gauge = screen.getByTestId('iv-gauge-bar')
-    expect(gauge.className).toContain('bg-red-500')
+    expect(gauge.className).toContain('bg-[#ff6b6b]')
   })
 
   it('境界値25で中立を表示する', () => {
     render(<IvRankGauge ivRank={25} label="ATM Call" />)
     expect(screen.getByText('中立')).toBeDefined()
     const gauge = screen.getByTestId('iv-gauge-bar')
-    expect(gauge.className).toContain('bg-slate-500')
+    expect(gauge.className).toContain('bg-[#888]')
   })
 
   it('境界値75で赤色を表示する', () => {
     render(<IvRankGauge ivRank={75} label="ATM Call" />)
     expect(screen.getByText('売り好機')).toBeDefined()
     const gauge = screen.getByTestId('iv-gauge-bar')
-    expect(gauge.className).toContain('bg-red-500')
+    expect(gauge.className).toContain('bg-[#ff6b6b]')
   })
 
   it('値0で正しく描画する', () => {
@@ -66,6 +66,6 @@ describe('IvRankGauge', () => {
 
   it('データ未取得時のフォールバック表示', () => {
     render(<IvRankGauge ivRank={null} label="ATM Call" />)
-    expect(screen.getByText('データ取得中...')).toBeDefined()
+    expect(screen.getByText('データなし')).toBeDefined()
   })
 })
