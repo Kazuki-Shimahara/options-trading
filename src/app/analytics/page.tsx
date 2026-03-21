@@ -15,6 +15,7 @@ import IvRankAnalysis from '@/components/IvRankAnalysis'
 import { tradesToPayoffPositions } from '@/lib/payoff'
 import { PayoffDiagram } from '@/components/PayoffDiagram'
 import { calculatePerformanceSummary } from '@/lib/performance-metrics'
+import TimeSeriesAnalysis from '@/components/TimeSeriesAnalysis'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
@@ -159,6 +160,8 @@ export default async function AnalyticsPage() {
           </p>
           <PayoffDiagram positions={payoffPositions} />
         </section>
+
+        <TimeSeriesAnalysis trades={trades} />
 
         <section className="mb-6">
           <h2 className="text-sm font-semibold text-white mb-3">
