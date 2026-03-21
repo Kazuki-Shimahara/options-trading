@@ -28,7 +28,7 @@ export function getSQDate(year: number, month: number): Date {
   const firstDay = new Date(year, month - 1, 1)
   const dayOfWeek = firstDay.getDay() // 0=Sun, 5=Fri
   // First Friday
-  let firstFriday = 1 + ((5 - dayOfWeek + 7) % 7)
+  const firstFriday = 1 + ((5 - dayOfWeek + 7) % 7)
   // Second Friday
   const secondFriday = firstFriday + 7
   return new Date(year, month - 1, secondFriday)

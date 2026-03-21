@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createTrade } from '@/app/actions/trades'
@@ -69,8 +69,6 @@ export default function NewTradePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { values: draft, hasDraft, updateValues: updateDraft, clearDraft } = useFormDraft<TradeDraft>(DRAFT_KEY, createInitialDraft())
-  const [greeks, setGreeks] = useState<Greeks | null>(null)
-  const [pop, setPop] = useState<number | null>(null)
   const [playbooks, setPlaybooks] = useState<SimplePlaybook[]>([])
 
   useEffect(() => {
@@ -87,14 +85,13 @@ export default function NewTradePage() {
     updateDraft({ ...draft, [key]: value })
   }
 
-  const computeGreeks = useCallback(() => {
+  const { greeks, pop } = useMemo<{ greeks: Greeks | null; pop: number | null }>(() => {
     const spot = parseFloat(draft.spotPrice)
     const strike = parseFloat(draft.strikePrice)
     const iv = parseFloat(draft.ivAtEntry)
 
     if (!spot || !strike || !iv || !draft.expiryDate) {
-      setGreeks(null)
-      return
+      return { greeks: null, pop: null }
     }
 
     const now = new Date()
@@ -103,9 +100,7 @@ export default function NewTradePage() {
     const timeToExpiry = diffMs / (1000 * 60 * 60 * 24 * 365)
 
     if (timeToExpiry <= 0) {
-      setGreeks(null)
-      setPop(null)
-      return
+      return { greeks: null, pop: null }
     }
 
     const inputs: BSInputs = {
@@ -120,7 +115,6 @@ export default function NewTradePage() {
 
     try {
       const result = calculateGreeks(inputs)
-      setGreeks(result)
 
       const entryPrice = parseFloat(draft.entryPrice)
       if (entryPrice > 0) {
@@ -135,19 +129,13 @@ export default function NewTradePage() {
           optionType: draft.tradeType,
           side: 'buy',
         })
-        setPop(popValue)
-      } else {
-        setPop(null)
+        return { greeks: result, pop: popValue }
       }
+      return { greeks: result, pop: null }
     } catch {
-      setGreeks(null)
-      setPop(null)
+      return { greeks: null, pop: null }
     }
   }, [draft.spotPrice, draft.strikePrice, draft.ivAtEntry, draft.expiryDate, draft.tradeType, draft.entryPrice])
-
-  useEffect(() => {
-    computeGreeks()
-  }, [computeGreeks])
 
   function toggleDefeatTag(tag: string) {
     const prev = draft.defeatTags
