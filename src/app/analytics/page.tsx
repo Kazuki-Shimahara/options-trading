@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { parseTrades, type Trade } from '@/lib/trade-schema'
 import type { IvHistory } from '@/types/database'

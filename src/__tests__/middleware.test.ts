@@ -48,7 +48,7 @@ describe('middleware SKIP_AUTH', () => {
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
       },
-    } as any)
+    } as unknown as ReturnType<typeof createServerClient>)
 
     const { middleware } = await import('@/middleware')
     const request = new NextRequest(new URL('http://localhost:3000/trades'))
@@ -67,7 +67,7 @@ describe('middleware SKIP_AUTH', () => {
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
       },
-    } as any)
+    } as unknown as ReturnType<typeof createServerClient>)
 
     const { middleware } = await import('@/middleware')
     const request = new NextRequest(new URL('http://localhost:3000/trades'))
