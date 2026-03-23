@@ -38,6 +38,8 @@ function makeTrade(overrides: Partial<Trade> = {}): Trade {
     is_mini: false,
     playbook_id: null,
     playbook_compliance: null,
+    confidence_level: null,
+    emotion: null,
     ...overrides,
   }
 }

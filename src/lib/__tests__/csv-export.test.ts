@@ -30,6 +30,8 @@ const baseTrade: Trade = {
   entry_iv_hv_ratio: null,
   playbook_id: null,
   playbook_compliance: null,
+    confidence_level: null,
+    emotion: null,
 }
 
 describe('CSV_HEADERS', () => {

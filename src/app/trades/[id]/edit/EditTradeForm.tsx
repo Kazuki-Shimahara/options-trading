@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { updateTrade } from '@/app/actions/trades'
 import type { Trade } from '@/lib/trade-schema'
 import { DatePicker } from '@/components/DatePicker'
+import { EMOTIONS, type Emotion } from '@/lib/emotion-analysis'
 
 const inputClass =
   'w-full bg-[#0a0a0a] border border-[#2a2a2a] text-white rounded-lg px-3 py-2.5 text-sm placeholder-[#444] focus:outline-none focus:ring-1 focus:ring-[#00d4aa] focus:border-[#00d4aa] transition-colors'
@@ -29,6 +30,8 @@ export default function EditTradeForm({
   const [tradeDate, setTradeDate] = useState(trade.trade_date)
   const [expiryDate, setExpiryDate] = useState(trade.expiry_date ?? '')
   const [exitDate, setExitDate] = useState(trade.exit_date ?? '')
+  const [confidenceLevel, setConfidenceLevel] = useState<number>(trade.confidence_level ?? 3)
+  const [emotion, setEmotion] = useState<string>(trade.emotion ?? '')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -52,6 +55,8 @@ export default function EditTradeForm({
       iv_at_entry: data.get('iv_at_entry') ? parseFloat(data.get('iv_at_entry') as string) : null,
       memo: (data.get('memo') as string) || null,
       is_mini: isMini,
+      confidence_level: confidenceLevel || null,
+      emotion: (emotion as Emotion) || null,
     })
 
     if (!result.success) {
@@ -196,6 +201,51 @@ export default function EditTradeForm({
               </div>
             </div>
           )}
+
+          {/* Emotion Tracking */}
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+            <h2 className={labelClass}>感情トラッキング</h2>
+            <div>
+              <label className="block text-[10px] text-[#888] mb-2">
+                自信度: <span className="text-white font-bold">{confidenceLevel}</span> / 5
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                step="1"
+                value={confidenceLevel}
+                onChange={(e) => setConfidenceLevel(parseInt(e.target.value))}
+                className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer accent-[#00d4aa]"
+              />
+              <div className="flex justify-between text-[10px] text-[#555] mt-1">
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] text-[#888] mb-1">感情</label>
+              <div className="flex flex-wrap gap-1.5">
+                {EMOTIONS.map((em) => (
+                  <button
+                    key={em}
+                    type="button"
+                    onClick={() => setEmotion(emotion === em ? '' : em)}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
+                      emotion === em
+                        ? 'bg-[#00d4aa] text-black'
+                        : 'bg-[#1a1a1a] text-[#555] border border-[#2a2a2a] hover:border-[#333]'
+                    }`}
+                  >
+                    {em}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Settlement Info */}
           <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">

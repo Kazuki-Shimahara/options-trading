@@ -73,6 +73,8 @@ export async function createTrade(
     is_mini: data.is_mini,
     playbook_id: data.playbook_id,
     playbook_compliance: data.playbook_compliance,
+    confidence_level: data.confidence_level,
+    emotion: data.emotion,
   });
 
   if (error) {
@@ -127,6 +129,8 @@ export async function updateTrade(
       is_mini: data.is_mini,
       playbook_id: data.playbook_id,
       playbook_compliance: data.playbook_compliance,
+      confidence_level: data.confidence_level,
+      emotion: data.emotion,
     })
     .eq("id", id);
 

@@ -69,6 +69,8 @@ const mockOpenTrade = {
   is_mini: false,
   playbook_id: null,
   playbook_compliance: null,
+  confidence_level: null,
+  emotion: null,
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
 }

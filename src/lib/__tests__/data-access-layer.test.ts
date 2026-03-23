@@ -107,6 +107,8 @@ describe('Server Actions for data access', () => {
         is_mini: false,
         playbook_id: null,
         playbook_compliance: null,
+        confidence_level: null,
+        emotion: null,
         user_id: 'u1',
         created_at: '2024-01-01',
         updated_at: '2024-01-01',

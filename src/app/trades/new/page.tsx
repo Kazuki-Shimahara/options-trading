@@ -12,6 +12,7 @@ import { getEventsInRange } from '@/lib/events'
 import type { EntryFeatures } from '@/lib/entry-quality-scoring'
 import EntryQualityScore from '@/components/EntryQualityScore'
 import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/tags'
+import { EMOTIONS, type Emotion } from '@/lib/emotion-analysis'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { DatePicker } from '@/components/DatePicker'
 import type { PlaybookRule } from '@/types/database'
@@ -39,6 +40,8 @@ interface TradeDraft {
   marketEnvTags: string[]
   playbookId: string
   playbookCompliance: boolean | null
+  confidenceLevel: number
+  emotion: string
 }
 
 const DRAFT_KEY = 'draft:new-trade'
@@ -60,6 +63,8 @@ const createInitialDraft = (): TradeDraft => ({
   marketEnvTags: [],
   playbookId: '',
   playbookCompliance: null,
+  confidenceLevel: 3,
+  emotion: '',
 })
 
 const inputClass =
@@ -207,6 +212,8 @@ export default function NewTradePage() {
       market_env_tags: draft.marketEnvTags.length > 0 ? draft.marketEnvTags : null,
       playbook_id: draft.playbookId || null,
       playbook_compliance: draft.playbookId ? draft.playbookCompliance : null,
+      confidence_level: draft.confidenceLevel || null,
+      emotion: (draft.emotion as Emotion) || null,
     })
 
     if (!result.success) {
@@ -527,6 +534,51 @@ export default function NewTradePage() {
               })()}
             </div>
           )}
+
+          {/* Emotion Tracking */}
+          <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+            <h2 className={labelClass}>感情トラッキング</h2>
+            <div>
+              <label className="block text-[10px] text-[#888] mb-2">
+                自信度: <span className="text-white font-bold">{draft.confidenceLevel}</span> / 5
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="5"
+                step="1"
+                value={draft.confidenceLevel}
+                onChange={(e) => updateField('confidenceLevel', parseInt(e.target.value))}
+                className="w-full h-2 bg-[#1a1a1a] rounded-lg appearance-none cursor-pointer accent-[#00d4aa]"
+              />
+              <div className="flex justify-between text-[10px] text-[#555] mt-1">
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] text-[#888] mb-1">感情</label>
+              <div className="flex flex-wrap gap-1.5">
+                {EMOTIONS.map((em) => (
+                  <button
+                    key={em}
+                    type="button"
+                    onClick={() => updateField('emotion', draft.emotion === em ? '' : em)}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
+                      draft.emotion === em
+                        ? 'bg-[#00d4aa] text-black'
+                        : 'bg-[#1a1a1a] text-[#666] border border-[#2a2a2a] hover:border-[#333]'
+                    }`}
+                  >
+                    {em}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {/* Defeat Tags */}
           <div className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 space-y-3">

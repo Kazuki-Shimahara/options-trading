@@ -26,7 +26,9 @@ create table if not exists trades (
   entry_iv_hv_ratio numeric(8, 4),
   is_mini boolean not null default false,
   playbook_id uuid,
-  playbook_compliance boolean
+  playbook_compliance boolean,
+  confidence_level integer check (confidence_level between 1 and 5),
+  emotion text check (emotion in ('冷静', '焦り', '興奮', '不安', '楽観'))
 );
 
 -- ミニオプション対応マイグレーション（既存テーブルへの適用）
@@ -213,6 +215,10 @@ create policy "Users can delete own playbooks" on playbooks
 
 -- trades.playbook_id の外部キー制約
 -- ALTER TABLE trades ADD CONSTRAINT trades_playbook_id_fkey FOREIGN KEY (playbook_id) REFERENCES playbooks(id) ON DELETE SET NULL;
+
+-- 感情トラッキングカラム追加（マイグレーション）
+-- ALTER TABLE trades ADD COLUMN IF NOT EXISTS confidence_level integer CHECK (confidence_level BETWEEN 1 AND 5);
+-- ALTER TABLE trades ADD COLUMN IF NOT EXISTS emotion text CHECK (emotion IN ('冷静', '焦り', '興奮', '不安', '楽観'));
 
 -- =============================================
 -- 含み損益アラート設定テーブル

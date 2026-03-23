@@ -179,6 +179,8 @@ describe("tradeSchema (full Trade row)", () => {
     is_mini: false,
     playbook_id: null,
     playbook_compliance: null,
+    confidence_level: null,
+    emotion: null,
   };
 
   it("should parse a valid Trade row", () => {
@@ -224,6 +226,8 @@ describe("parseTrades", () => {
     is_mini: false,
     playbook_id: null,
     playbook_compliance: null,
+    confidence_level: null,
+    emotion: null,
   };
 
   it("should parse an array of valid trade rows", () => {
@@ -271,6 +275,8 @@ describe("parseTrade", () => {
     is_mini: true,
     playbook_id: "pb-1",
     playbook_compliance: true,
+    confidence_level: null,
+    emotion: null,
   };
 
   it("should parse a valid single trade", () => {

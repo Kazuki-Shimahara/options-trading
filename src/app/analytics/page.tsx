@@ -19,6 +19,8 @@ import TimeSeriesAnalysis from '@/components/TimeSeriesAnalysis'
 import StreakAnalysis from '@/components/StreakAnalysis'
 import ScoreBandAnalysis from '@/components/ScoreBandAnalysis'
 import MonteCarloSimulation from '@/components/MonteCarloSimulation'
+import EmotionAnalysis from '@/components/EmotionAnalysis'
+import type { TradeWithEmotion } from '@/lib/emotion-analysis'
 
 async function getClosedTrades(): Promise<Trade[]> {
   const supabase = await createServerSupabaseClient()
@@ -208,6 +210,16 @@ export default async function AnalyticsPage() {
             メンタル状態の定量化とリベンジトレード検出
           </p>
           <StreakAnalysis trades={trades} />
+        </section>
+
+        <section className="mb-6">
+          <h2 className="text-sm font-semibold text-white mb-3">
+            感情トラッキング分析
+          </h2>
+          <p className="text-[10px] text-[#666] mb-3">
+            自信度・感情と勝率の相関を分析
+          </p>
+          <EmotionAnalysis trades={trades as TradeWithEmotion[]} />
         </section>
 
         {totalTrades === 0 ? (

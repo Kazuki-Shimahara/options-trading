@@ -36,6 +36,8 @@ function makeTrade(overrides: Partial<Trade> & { position_side?: PositionSide })
     market_env_tags: null,
     playbook_id: null,
     playbook_compliance: null,
+    confidence_level: null,
+    emotion: null,
     ...overrides,
   }
 }
