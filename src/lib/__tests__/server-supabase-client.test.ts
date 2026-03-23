@@ -22,7 +22,9 @@ const SERVER_FILES_WITH_SERVER_HELPER = [
   'src/app/page.tsx',
 ]
 
-const CLIENT_COMPONENT_FILES = [
+// These files previously used createBrowserSupabaseClient directly but
+// have been migrated to use Server Actions for data access (Issue #84).
+const SERVER_ACTION_CLIENT_FILES = [
   'src/app/trades/[id]/edit/page.tsx',
   'src/app/settings/page.tsx',
 ]
@@ -70,17 +72,17 @@ describe('Server側Supabaseクライアントの統一', () => {
   })
 })
 
-describe('Client ComponentsのSupabaseクライアント', () => {
-  for (const filePath of CLIENT_COMPONENT_FILES) {
+describe('Server Actions経由のデータアクセス (Issue #84)', () => {
+  for (const filePath of SERVER_ACTION_CLIENT_FILES) {
     describe(filePath, () => {
       it('匿名クライアント（@/lib/supabase）をインポートしていない', () => {
         const content = readFile(filePath)
         expect(content).not.toMatch(/from ['"]@\/lib\/supabase['"]/)
       })
 
-      it('createBrowserSupabaseClientを使用している', () => {
+      it('createBrowserSupabaseClientを直接使用していない', () => {
         const content = readFile(filePath)
-        expect(content).toContain('createBrowserSupabaseClient')
+        expect(content).not.toContain('createBrowserSupabaseClient')
       })
     })
   }

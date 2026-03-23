@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createBrowserSupabaseClient } from '@/lib/supabase/client'
+import { loadUserPreferences, saveUserPreferences } from '@/app/actions/settings'
 import { getFilterDescription } from '@/lib/signal-filters'
-import type { UserPreference, TradingStyleValue } from '@/types/database'
+import type { TradingStyleValue } from '@/types/database'
 
 const styleOptions: { value: TradingStyleValue; label: string }[] = [
   { value: 'buy_focused', label: '買い中心' },
@@ -19,53 +19,30 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadPreferences() {
-      const supabase = createBrowserSupabaseClient()
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .limit(1)
-        .single()
-
-      if (!error && data) {
-        const pref = data as UserPreference
+    async function load() {
+      const pref = await loadUserPreferences()
+      if (pref) {
         setTradingStyle(pref.trading_style)
         setPreferenceId(pref.id)
       }
       setLoading(false)
     }
-    loadPreferences()
+    load()
   }, [])
 
   async function handleSave() {
     setSaving(true)
     setMessage(null)
-    const supabase = createBrowserSupabaseClient()
 
-    if (preferenceId) {
-      const { error } = await supabase
-        .from('user_preferences')
-        .update({ trading_style: tradingStyle })
-        .eq('id', preferenceId)
+    const result = await saveUserPreferences(preferenceId, tradingStyle)
 
-      if (error) {
-        setMessage('保存に失敗しました')
-      } else {
-        setMessage('設定を保存しました')
+    if (result.success) {
+      if (result.id) {
+        setPreferenceId(result.id)
       }
+      setMessage('設定を保存しました')
     } else {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .insert({ trading_style: tradingStyle })
-        .select()
-        .single()
-
-      if (error) {
-        setMessage('保存に失敗しました')
-      } else {
-        setPreferenceId((data as UserPreference).id)
-        setMessage('設定を保存しました')
-      }
+      setMessage('保存に失敗しました')
     }
 
     setSaving(false)
