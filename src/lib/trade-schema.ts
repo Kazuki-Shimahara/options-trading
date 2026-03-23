@@ -1,7 +1,24 @@
 import { z } from "zod";
 
-const tradeTypeSchema = z.enum(["call", "put"]);
-const tradeStatusSchema = z.enum(["open", "closed"]);
+export const tradeTypeSchema = z.enum(["call", "put"]);
+export const tradeStatusSchema = z.enum(["open", "closed"]);
+
+export type TradeType = z.infer<typeof tradeTypeSchema>;
+export type TradeStatus = z.infer<typeof tradeStatusSchema>;
+
+/**
+ * Type guard for TradeType values.
+ */
+export function isTradeType(value: unknown): value is TradeType {
+  return tradeTypeSchema.safeParse(value).success;
+}
+
+/**
+ * Type guard for TradeStatus values.
+ */
+export function isTradeStatus(value: unknown): value is TradeStatus {
+  return tradeStatusSchema.safeParse(value).success;
+}
 
 /**
  * Schema for creating a new trade (server action input).

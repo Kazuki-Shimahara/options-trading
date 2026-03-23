@@ -3,6 +3,10 @@ import {
   createTradeSchema,
   updateTradeSchema,
   tradeSchema,
+  parseTrades,
+  parseTrade,
+  isTradeType,
+  isTradeStatus,
 } from "@/lib/trade-schema";
 
 describe("createTradeSchema", () => {
@@ -188,5 +192,130 @@ describe("tradeSchema (full Trade row)", () => {
       status: "pending",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("parseTrades", () => {
+  const validTrade = {
+    id: "123e4567-e89b-12d3-a456-426614174000",
+    user_id: "user-123",
+    created_at: "2025-01-15T00:00:00Z",
+    updated_at: "2025-01-15T00:00:00Z",
+    trade_date: "2025-01-15",
+    trade_type: "call",
+    strike_price: 39000,
+    expiry_date: "2025-02-14",
+    quantity: 1,
+    entry_price: 150.5,
+    exit_price: null,
+    exit_date: null,
+    pnl: null,
+    iv_at_entry: null,
+    memo: null,
+    status: "open",
+    defeat_tags: null,
+    market_env_tags: null,
+    entry_delta: null,
+    entry_gamma: null,
+    entry_theta: null,
+    entry_vega: null,
+    entry_iv_rank: null,
+    entry_iv_hv_ratio: null,
+    is_mini: false,
+    playbook_id: null,
+    playbook_compliance: null,
+  };
+
+  it("should parse an array of valid trade rows", () => {
+    const result = parseTrades([validTrade]);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(validTrade.id);
+  });
+
+  it("should return empty array for empty input", () => {
+    const result = parseTrades([]);
+    expect(result).toEqual([]);
+  });
+
+  it("should throw on invalid data in array", () => {
+    expect(() => parseTrades([{ invalid: true }])).toThrow();
+  });
+});
+
+describe("parseTrade", () => {
+  const validTrade = {
+    id: "123e4567-e89b-12d3-a456-426614174000",
+    user_id: "user-123",
+    created_at: "2025-01-15T00:00:00Z",
+    updated_at: "2025-01-15T00:00:00Z",
+    trade_date: "2025-01-15",
+    trade_type: "put",
+    strike_price: 38000,
+    expiry_date: "2025-02-14",
+    quantity: 2,
+    entry_price: 200,
+    exit_price: 100,
+    exit_date: "2025-02-10",
+    pnl: -200000,
+    iv_at_entry: 20.5,
+    memo: "テスト",
+    status: "closed",
+    defeat_tags: ["損切り遅れ"],
+    market_env_tags: ["下降トレンド"],
+    entry_delta: -0.3,
+    entry_gamma: 0.001,
+    entry_theta: -5.2,
+    entry_vega: 12.3,
+    entry_iv_rank: 75,
+    entry_iv_hv_ratio: 1.2,
+    is_mini: true,
+    playbook_id: "pb-1",
+    playbook_compliance: true,
+  };
+
+  it("should parse a valid single trade", () => {
+    const result = parseTrade(validTrade);
+    expect(result.trade_type).toBe("put");
+    expect(result.is_mini).toBe(true);
+  });
+
+  it("should throw on invalid single trade", () => {
+    expect(() => parseTrade({ id: 123 })).toThrow();
+  });
+});
+
+describe("isTradeType", () => {
+  it("should return true for 'call'", () => {
+    expect(isTradeType("call")).toBe(true);
+  });
+
+  it("should return true for 'put'", () => {
+    expect(isTradeType("put")).toBe(true);
+  });
+
+  it("should return false for invalid value", () => {
+    expect(isTradeType("invalid")).toBe(false);
+  });
+
+  it("should return false for null", () => {
+    expect(isTradeType(null)).toBe(false);
+  });
+});
+
+describe("isTradeStatus", () => {
+  it("should return true for 'open'", () => {
+    expect(isTradeStatus("open")).toBe(true);
+  });
+
+  it("should return true for 'closed'", () => {
+    expect(isTradeStatus("closed")).toBe(true);
+  });
+
+  it("should return false for invalid value", () => {
+    expect(isTradeStatus("pending")).toBe(false);
+  });
+
+  it("should return false for null", () => {
+    expect(isTradeStatus(null)).toBe(false);
   });
 });
