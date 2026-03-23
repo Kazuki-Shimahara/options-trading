@@ -7,11 +7,27 @@ import {
   createTradeSchema,
   updateTradeSchema,
   getZodErrorMessage,
+  parseTrade,
 } from "@/lib/trade-schema";
+import type { Trade } from "@/lib/trade-schema";
 
 export type TradeActionResult =
   | { success: true }
   | { success: false; error: string };
+
+export async function getTradeById(id: string): Promise<Trade | null> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("trades")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+  return parseTrade(data);
+}
 
 export async function createTrade(
   input: unknown,

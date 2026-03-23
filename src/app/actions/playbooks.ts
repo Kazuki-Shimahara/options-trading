@@ -5,11 +5,49 @@ import { revalidatePath } from "next/cache";
 import {
   createPlaybookSchema,
   updatePlaybookSchema,
+  parsePlaybook,
 } from "@/lib/playbook-schema";
+import type { Playbook } from "@/lib/playbook-schema";
+import type { PlaybookRule } from "@/types/database";
 
 export type PlaybookActionResult =
   | { success: true; id?: string }
   | { success: false; error: string };
+
+interface SimplePlaybook {
+  id: string;
+  name: string;
+  rules: PlaybookRule[];
+}
+
+export async function getPlaybooksForSelect(): Promise<SimplePlaybook[]> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("playbooks")
+    .select("id, name, rules")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return [];
+  }
+  return data as SimplePlaybook[];
+}
+
+export async function getPlaybookById(
+  id: string,
+): Promise<Playbook | null> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("playbooks")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+  return parsePlaybook(data);
+}
 
 export async function createPlaybook(
   input: unknown,
