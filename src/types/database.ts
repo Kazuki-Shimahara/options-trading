@@ -96,6 +96,26 @@ export interface Playbook {
   updated_at: string;
 }
 
+export interface PnlAlertSetting {
+  id: string;
+  trade_id: string;
+  threshold_amount: number;
+  direction: "loss" | "profit" | "both";
+  enabled: boolean;
+  cooldown_minutes: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PnlAlertNotification {
+  id: string;
+  alert_setting_id: string;
+  trade_id: string;
+  triggered_pnl: number;
+  threshold_amount: number;
+  sent_at: string;
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -140,6 +160,20 @@ export type Database = {
         Row: Playbook;
         Insert: Omit<Playbook, "id" | "created_at" | "updated_at">;
         Update: Partial<Omit<Playbook, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
+      };
+      pnl_alert_settings: {
+        Row: PnlAlertSetting;
+        Insert: Omit<PnlAlertSetting, "id" | "created_at" | "updated_at">;
+        Update: Partial<
+          Omit<PnlAlertSetting, "id" | "created_at" | "updated_at">
+        >;
+        Relationships: [];
+      };
+      pnl_alert_notifications: {
+        Row: PnlAlertNotification;
+        Insert: Omit<PnlAlertNotification, "id" | "sent_at">;
+        Update: Partial<Omit<PnlAlertNotification, "id" | "sent_at">>;
         Relationships: [];
       };
     };

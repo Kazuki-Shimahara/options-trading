@@ -213,3 +213,45 @@ create policy "Users can delete own playbooks" on playbooks
 
 -- trades.playbook_id の外部キー制約
 -- ALTER TABLE trades ADD CONSTRAINT trades_playbook_id_fkey FOREIGN KEY (playbook_id) REFERENCES playbooks(id) ON DELETE SET NULL;
+
+-- =============================================
+-- 含み損益アラート設定テーブル
+-- =============================================
+create table if not exists pnl_alert_settings (
+  id uuid primary key default gen_random_uuid(),
+  trade_id uuid not null references trades(id) on delete cascade,
+  threshold_amount numeric(14, 2) not null,
+  direction text not null default 'loss' check (direction in ('loss', 'profit', 'both')),
+  enabled boolean not null default true,
+  cooldown_minutes integer not null default 60,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- updated_at を自動更新するトリガー
+create trigger pnl_alert_settings_updated_at
+  before update on pnl_alert_settings
+  for each row execute function update_updated_at();
+
+-- インデックス
+create index if not exists pnl_alert_settings_trade_id_idx on pnl_alert_settings (trade_id);
+create index if not exists pnl_alert_settings_enabled_idx on pnl_alert_settings (enabled);
+
+-- RLS
+alter table pnl_alert_settings enable row level security;
+
+-- =============================================
+-- 含み損益アラート通知履歴テーブル
+-- =============================================
+create table if not exists pnl_alert_notifications (
+  id uuid primary key default gen_random_uuid(),
+  alert_setting_id uuid not null references pnl_alert_settings(id) on delete cascade,
+  trade_id uuid not null references trades(id) on delete cascade,
+  triggered_pnl numeric(14, 2) not null,
+  threshold_amount numeric(14, 2) not null,
+  sent_at timestamptz not null default now()
+);
+
+-- インデックス
+create index if not exists pnl_alert_notifications_setting_id_idx on pnl_alert_notifications (alert_setting_id);
+create index if not exists pnl_alert_notifications_sent_at_idx on pnl_alert_notifications (sent_at desc);
