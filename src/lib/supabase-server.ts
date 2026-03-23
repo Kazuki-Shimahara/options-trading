@@ -61,7 +61,7 @@ export async function getClosedTradesInMonth(year: number, month: number): Promi
     console.error('Failed to fetch closed trades:', error)
     return []
   }
-  return (data ?? []) as Trade[]
+  return parseTrades(data ?? [])
 }
 
 export async function getOpenTrades(): Promise<Trade[]> {

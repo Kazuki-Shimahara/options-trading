@@ -7,11 +7,27 @@ import {
   createTradeSchema,
   updateTradeSchema,
   getZodErrorMessage,
+  parseTrade,
 } from "@/lib/trade-schema";
+import type { Trade } from "@/lib/trade-schema";
 
 export type TradeActionResult =
   | { success: true }
   | { success: false; error: string };
+
+export async function getTradeById(id: string): Promise<Trade | null> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from("trades")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+  return parseTrade(data);
+}
 
 export async function createTrade(
   input: unknown,
@@ -124,6 +140,41 @@ export async function updateTrade(
 
   revalidatePath("/trades");
   revalidatePath(`/trades/${id}`);
+  return { success: true };
+}
+
+export async function updateTradeReview(
+  id: string,
+  data: { defeat_tags: string[]; memo: string },
+): Promise<TradeActionResult> {
+  if (!id) {
+    return { success: false, error: "取引IDが指定されていません" };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: false, error: "認証が必要です" };
+  }
+
+  const { error } = await supabase
+    .from("trades")
+    .update({
+      defeat_tags: data.defeat_tags,
+      memo: data.memo,
+    })
+    .eq("id", id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/trades");
+  revalidatePath(`/trades/${id}`);
+  revalidatePath("/review");
   return { success: true };
 }
 

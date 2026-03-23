@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createTrade } from '@/app/actions/trades'
+import { getPlaybooksForSelect } from '@/app/actions/playbooks'
 import { calculateGreeks, type Greeks } from '@/lib/greeks'
 import type { BSInputs } from '@/lib/black-scholes'
 import { calculatePOP } from '@/lib/pop'
@@ -14,7 +15,6 @@ import { DEFEAT_TAG_CATEGORIES, MARKET_ENV_AXES, type DefeatTag } from '@/lib/ta
 import { EMOTIONS, type Emotion } from '@/lib/emotion-analysis'
 import { useFormDraft } from '@/hooks/useFormDraft'
 import { DatePicker } from '@/components/DatePicker'
-import { createBrowserSupabaseClient } from '@/lib/supabase/client'
 import type { PlaybookRule } from '@/types/database'
 
 interface SimplePlaybook {
@@ -80,13 +80,7 @@ export default function NewTradePage() {
   const [playbooks, setPlaybooks] = useState<SimplePlaybook[]>([])
 
   useEffect(() => {
-    createBrowserSupabaseClient()
-      .from('playbooks')
-      .select('id, name, rules')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        if (data) setPlaybooks(data as SimplePlaybook[])
-      })
+    getPlaybooksForSelect().then(setPlaybooks)
   }, [])
 
   const updateField = <K extends keyof TradeDraft>(key: K, value: TradeDraft[K]) => {
