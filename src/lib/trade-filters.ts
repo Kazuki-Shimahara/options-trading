@@ -1,4 +1,4 @@
-import type { TradeType, TradeStatus } from '@/types/database'
+import { isTradeType, isTradeStatus, type TradeType, type TradeStatus } from '@/lib/trade-schema'
 
 export interface TradeFilterParams {
   tradeType: TradeType | null
@@ -13,8 +13,6 @@ export interface FilterCondition {
   value: string
 }
 
-const VALID_TRADE_TYPES: TradeType[] = ['call', 'put']
-const VALID_STATUSES: TradeStatus[] = ['open', 'closed']
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
 export function parseTradeFilterParams(
@@ -26,14 +24,8 @@ export function parseTradeFilterParams(
   const rawDateTo = searchParams.get('date_to')
 
   return {
-    tradeType:
-      rawType && VALID_TRADE_TYPES.includes(rawType as TradeType)
-        ? (rawType as TradeType)
-        : null,
-    status:
-      rawStatus && VALID_STATUSES.includes(rawStatus as TradeStatus)
-        ? (rawStatus as TradeStatus)
-        : null,
+    tradeType: isTradeType(rawType) ? rawType : null,
+    status: isTradeStatus(rawStatus) ? rawStatus : null,
     dateFrom:
       rawDateFrom && DATE_REGEX.test(rawDateFrom) ? rawDateFrom : null,
     dateTo: rawDateTo && DATE_REGEX.test(rawDateTo) ? rawDateTo : null,
