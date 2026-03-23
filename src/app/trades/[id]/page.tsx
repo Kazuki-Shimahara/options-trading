@@ -133,6 +133,16 @@ export default async function TradeDetailPage({
                 </span>
               </Row>
             )}
+            {trade.confidence_level !== null && (
+              <Row label="自信度">
+                <span className="font-mono text-[#00d4aa]">{trade.confidence_level} / 5</span>
+              </Row>
+            )}
+            {trade.emotion && (
+              <Row label="感情">
+                <span className="text-white">{trade.emotion}</span>
+              </Row>
+            )}
           </div>
 
           {trade.memo && (

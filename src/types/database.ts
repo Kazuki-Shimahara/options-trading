@@ -29,6 +29,8 @@ export interface Trade {
   is_mini: boolean;
   playbook_id: string | null;
   playbook_compliance: boolean | null;
+  confidence_level: number | null;
+  emotion: string | null;
 }
 
 export type OptionType = "call" | "put";

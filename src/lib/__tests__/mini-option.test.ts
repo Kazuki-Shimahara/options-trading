@@ -121,6 +121,8 @@ describe('ミニオプション対応', () => {
         is_mini: true,
         playbook_id: null,
         playbook_compliance: null,
+        confidence_level: null,
+        emotion: null,
       }
       const result = tradeSchema.safeParse(row)
       expect(result.success).toBe(true)

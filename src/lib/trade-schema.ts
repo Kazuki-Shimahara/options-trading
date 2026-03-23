@@ -29,6 +29,11 @@ export const createTradeSchema = z.object({
   is_mini: z.boolean().default(false),
   playbook_id: z.string().nullable().default(null),
   playbook_compliance: z.boolean().nullable().default(null),
+  confidence_level: z.number().int().min(1).max(5).nullable().default(null),
+  emotion: z
+    .enum(["冷静", "焦り", "興奮", "不安", "楽観"])
+    .nullable()
+    .default(null),
 });
 
 export type CreateTradeInput = z.infer<typeof createTradeSchema>;
@@ -53,6 +58,11 @@ export const updateTradeSchema = z.object({
   is_mini: z.boolean().default(false),
   playbook_id: z.string().nullable().default(null),
   playbook_compliance: z.boolean().nullable().default(null),
+  confidence_level: z.number().int().min(1).max(5).nullable().default(null),
+  emotion: z
+    .enum(["冷静", "焦り", "興奮", "不安", "楽観"])
+    .nullable()
+    .default(null),
 });
 
 export type UpdateTradeInput = z.infer<typeof updateTradeSchema>;
@@ -89,6 +99,8 @@ export const tradeSchema = z.object({
   is_mini: z.boolean(),
   playbook_id: z.string().nullable(),
   playbook_compliance: z.boolean().nullable(),
+  confidence_level: z.number().nullable(),
+  emotion: z.string().nullable(),
 });
 
 export type Trade = z.infer<typeof tradeSchema>;

@@ -310,6 +310,8 @@ describe('tradesToPayoffPositions', () => {
     is_mini: false,
     playbook_id: null,
     playbook_compliance: null,
+    confidence_level: null,
+    emotion: null,
   }
 
   it('converts trades to payoff positions with default buy side', () => {
