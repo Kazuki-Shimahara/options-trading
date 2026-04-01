@@ -78,6 +78,7 @@ export default function NewTradePage() {
   const [error, setError] = useState<string | null>(null)
   const { values: draft, hasDraft, updateValues: updateDraft, clearDraft } = useFormDraft<TradeDraft>(DRAFT_KEY, createInitialDraft())
   const [playbooks, setPlaybooks] = useState<SimplePlaybook[]>([])
+  const [showPopHelp, setShowPopHelp] = useState(false)
 
   useEffect(() => {
     getPlaybooksForSelect().then(setPlaybooks)
@@ -421,11 +422,40 @@ export default function NewTradePage() {
               {pop !== null && (
                 <div className="mt-3 bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-[#00d4aa]/70 uppercase tracking-wider">POP（利益確率）</span>
+                    <span className="text-[10px] text-[#00d4aa]/70 uppercase tracking-wider flex items-center gap-1">
+                      POP（利益確率）
+                      <button
+                        type="button"
+                        onClick={() => setShowPopHelp((v) => !v)}
+                        className="w-4 h-4 rounded-full border border-[#555] text-[#888] hover:text-[#00d4aa] hover:border-[#00d4aa] text-[9px] leading-none transition-colors"
+                      >
+                        ?
+                      </button>
+                    </span>
                     <span className={`text-lg font-mono font-bold ${pop >= 50 ? 'text-[#00d4aa]' : 'text-[#f0b429]'}`}>
                       {pop}%
                     </span>
                   </div>
+                  {showPopHelp && (
+                    <div className="mt-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-3 text-[11px] text-[#aaa]">
+                      <p className="text-[#00d4aa] font-semibold mb-1.5">POP 目安表</p>
+                      <table className="w-full">
+                        <tbody>
+                          {[
+                            ['5%以下', 'かなり投機的（遠いOTM）'],
+                            ['10-30%', '典型的なOTM買い'],
+                            ['30-50%', 'ATM付近の買い'],
+                            ['50%以上', 'ITMの買い'],
+                          ].map(([range, desc]) => (
+                            <tr key={range} className="border-b border-[#2a2a2a] last:border-b-0">
+                              <td className="py-1 pr-3 font-mono text-white whitespace-nowrap">{range}</td>
+                              <td className="py-1 text-[#888]">{desc}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                   <div className="mt-1.5 h-1.5 bg-[#1a1a1a] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${pop >= 50 ? 'bg-[#00d4aa]' : 'bg-[#f0b429]'}`}
