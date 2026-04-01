@@ -75,40 +75,40 @@ describe('calculateEntryQualityScore', () => {
     expect(lowScore).toBeLessThanOrEqual(100)
   })
 
-  it('gives higher score for high IV rank (sell premium opportunity)', () => {
-    const highIvScore = calculateEntryQualityScore(makeFeatures({ ivRank: 90 }))
+  it('gives higher score for low IV rank (cheap premium = buy opportunity)', () => {
     const lowIvScore = calculateEntryQualityScore(makeFeatures({ ivRank: 10 }))
-    expect(highIvScore).toBeGreaterThan(lowIvScore)
+    const highIvScore = calculateEntryQualityScore(makeFeatures({ ivRank: 90 }))
+    expect(lowIvScore).toBeGreaterThan(highIvScore)
   })
 
-  it('gives higher score for high IV percentile', () => {
-    const highScore = calculateEntryQualityScore(makeFeatures({ ivPercentile: 90 }))
+  it('gives higher score for low IV percentile (buy opportunity)', () => {
     const lowScore = calculateEntryQualityScore(makeFeatures({ ivPercentile: 10 }))
-    expect(highScore).toBeGreaterThan(lowScore)
+    const highScore = calculateEntryQualityScore(makeFeatures({ ivPercentile: 90 }))
+    expect(lowScore).toBeGreaterThan(highScore)
   })
 
-  it('gives higher score for high PCR (more puts = fear = sell premium opportunity)', () => {
-    const highPcrScore = calculateEntryQualityScore(makeFeatures({ pcr: 1.5 }))
+  it('gives higher score for low PCR (complacency = vol expansion potential = buy opportunity)', () => {
     const lowPcrScore = calculateEntryQualityScore(makeFeatures({ pcr: 0.5 }))
-    expect(highPcrScore).toBeGreaterThan(lowPcrScore)
+    const highPcrScore = calculateEntryQualityScore(makeFeatures({ pcr: 1.5 }))
+    expect(lowPcrScore).toBeGreaterThan(highPcrScore)
   })
 
-  it('gives higher score for negative skew (steeper skew = premium selling opportunity)', () => {
+  it('gives higher score for negative skew (steeper skew = OTM put cheap = buy opportunity)', () => {
     const negSkew = calculateEntryQualityScore(makeFeatures({ skew: -5 }))
     const posSkew = calculateEntryQualityScore(makeFeatures({ skew: 5 }))
     expect(negSkew).toBeGreaterThan(posSkew)
   })
 
-  it('penalizes pre-event entries', () => {
+  it('gives bonus for pre-event entries (vol expansion expected = buy opportunity)', () => {
     const preEvent = calculateEntryQualityScore(makeFeatures({ isPreEvent: true }))
     const noEvent = calculateEntryQualityScore(makeFeatures({ isPreEvent: false }))
-    expect(preEvent).toBeLessThan(noEvent)
+    expect(preEvent).toBeGreaterThan(noEvent)
   })
 
-  it('gives slight bonus for post-event entries', () => {
+  it('penalizes post-event entries (vol crush = unfavorable for buying)', () => {
     const postEvent = calculateEntryQualityScore(makeFeatures({ isPostEvent: true }))
     const noEvent = calculateEntryQualityScore(makeFeatures({ isPostEvent: false }))
-    expect(postEvent).toBeGreaterThan(noEvent)
+    expect(postEvent).toBeLessThan(noEvent)
   })
 
   it('gives higher score on midweek days (Tue-Thu)', () => {

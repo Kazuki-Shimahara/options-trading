@@ -25,10 +25,10 @@ describe('IvRankGauge', () => {
     expect(gauge.className).toContain('bg-[#888]')
   })
 
-  it('75以上の値で赤色（売り好機）を表示する', () => {
+  it('75以上の値で赤色（割高注意）を表示する', () => {
     render(<IvRankGauge ivRank={85} label="ATM Call" />)
     expect(screen.getByText('85.0')).toBeDefined()
-    expect(screen.getByText('売り好機')).toBeDefined()
+    expect(screen.getByText('割高注意')).toBeDefined()
     const gauge = screen.getByTestId('iv-gauge-bar')
     expect(gauge.className).toContain('bg-[#ff6b6b]')
   })
@@ -42,7 +42,7 @@ describe('IvRankGauge', () => {
 
   it('境界値75で赤色を表示する', () => {
     render(<IvRankGauge ivRank={75} label="ATM Call" />)
-    expect(screen.getByText('売り好機')).toBeDefined()
+    expect(screen.getByText('割高注意')).toBeDefined()
     const gauge = screen.getByTestId('iv-gauge-bar')
     expect(gauge.className).toContain('bg-[#ff6b6b]')
   })
@@ -55,7 +55,7 @@ describe('IvRankGauge', () => {
 
   it('値100で正しく描画する', () => {
     render(<IvRankGauge ivRank={100} label="ATM Call" />)
-    expect(screen.getByText('売り好機')).toBeDefined()
+    expect(screen.getByText('割高注意')).toBeDefined()
   })
 
   it('ゲージバーの幅がvalue%になる', () => {

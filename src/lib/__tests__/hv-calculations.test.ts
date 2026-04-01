@@ -110,9 +110,9 @@ describe('getIvHvSignal', () => {
     expect(getIvHvSignal(1.5)).toBe('中立')
   })
 
-  it('returns 売り好機 when ratio > 1.5', () => {
-    expect(getIvHvSignal(1.51)).toBe('売り好機')
-    expect(getIvHvSignal(2.0)).toBe('売り好機')
+  it('returns 割高注意 when ratio > 1.5', () => {
+    expect(getIvHvSignal(1.51)).toBe('割高注意')
+    expect(getIvHvSignal(2.0)).toBe('割高注意')
   })
 })
 

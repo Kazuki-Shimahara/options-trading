@@ -77,12 +77,12 @@ export function calculateIvHvRatio(
  */
 export function getIvHvSignal(
   ratio: number
-): '買い好機' | '中立' | '売り好機' {
+): '買い好機' | '中立' | '割高注意' {
   if (ratio < 1.0) {
     return '買い好機'
   }
   if (ratio > 1.5) {
-    return '売り好機'
+    return '割高注意'
   }
   return '中立'
 }
