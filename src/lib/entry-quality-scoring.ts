@@ -4,7 +4,7 @@ import type { Trade } from '@/types/database'
  * エントリー品質スコアリング
  *
  * 特徴量からルールベースで0-100点のスコアを算出する。
- * 高IVランク時のプレミアム売り戦略を高評価とする。
+ * 低IVランク時のオプション買い戦略（割安なプレミアム）を高評価とする。
  */
 
 export interface EntryFeatures {
@@ -36,32 +36,33 @@ const WEIGHTS = {
 
 /**
  * IVランクのスコア (0-100)
- * 高いほど良い（プレミアム売りに有利）
+ * 低いほど良い（プレミアムが割安＝オプション買いに有利）
  */
 function scoreIvRank(ivRank: number): number {
-  return Math.max(0, Math.min(100, ivRank))
+  return Math.max(0, Math.min(100, 100 - ivRank))
 }
 
 /**
  * IVパーセンタイルのスコア (0-100)
+ * 低いほど良い（IVが相対的に低い＝買いに有利）
  */
 function scoreIvPercentile(ivPercentile: number): number {
-  return Math.max(0, Math.min(100, ivPercentile))
+  return Math.max(0, Math.min(100, 100 - ivPercentile))
 }
 
 /**
  * PCRスコア (0-100)
- * PCR > 1.0 は恐怖心理 → プレミアム売り好機
- * 0.5-2.0 の範囲を 0-100 にマッピング
+ * PCR < 1.0 は楽観 → ボラ拡大余地あり → オプション買い好機
+ * 0.5-2.0 の範囲を 100-0 にマッピング
  */
 function scorePcr(pcr: number): number {
   const clamped = Math.max(0.5, Math.min(2.0, pcr))
-  return ((clamped - 0.5) / 1.5) * 100
+  return ((2.0 - clamped) / 1.5) * 100
 }
 
 /**
  * スキュースコア (0-100)
- * 負のスキュー（スティープ）はプレミアム売り好機
+ * 負のスキュー（スティープ）はOTMプットが割安 → 買い好機
  * -10〜+10 を 100〜0 にマッピング
  */
 function scoreSkew(skew: number): number {
@@ -88,13 +89,13 @@ function scoreDayOfWeek(dayOfWeek: number): number {
 
 /**
  * イベントスコア (0-100)
- * イベント前: リスク高 → 低スコア
- * イベント後: ボラ低下 → 高スコア
+ * イベント前: ボラ拡大期待 → 買い好機 → 高スコア
+ * イベント後: ボラ収縮 → 買いに不利 → 低スコア
  * 通常時: 中程度
  */
 function scoreEvent(isPreEvent: boolean, isPostEvent: boolean): number {
-  if (isPreEvent) return 30
-  if (isPostEvent) return 80
+  if (isPreEvent) return 80
+  if (isPostEvent) return 30
   return 60
 }
 

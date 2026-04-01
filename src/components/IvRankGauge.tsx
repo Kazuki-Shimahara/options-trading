@@ -11,7 +11,7 @@ function getColor(ivRank: number): { bar: string; text: string; label: string } 
   } else if (ivRank < 75) {
     return { bar: 'bg-[#888]', text: 'text-[#888]', label: '中立' }
   } else {
-    return { bar: 'bg-[#ff6b6b]', text: 'text-[#ff6b6b]', label: '売り好機' }
+    return { bar: 'bg-[#ff6b6b]', text: 'text-[#ff6b6b]', label: '割高注意' }
   }
 }
 

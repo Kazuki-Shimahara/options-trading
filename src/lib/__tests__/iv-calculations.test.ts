@@ -4,6 +4,8 @@ import {
   buildSkewTimeSeries,
   findAtmIv,
   findOtmPutIv,
+  getIvRankLabel,
+  getIvRankColor,
 } from '../iv-calculations'
 import type { IvHistory } from '@/types/database'
 
@@ -87,6 +89,40 @@ describe('calculateSkew', () => {
 
   it('returns null when OTM put IV is null', () => {
     expect(calculateSkew(null, 0.18)).toBeNull()
+  })
+})
+
+describe('getIvRankLabel', () => {
+  it('returns 買い好機 for ivRank <= 25', () => {
+    expect(getIvRankLabel(0)).toBe('買い好機')
+    expect(getIvRankLabel(25)).toBe('買い好機')
+  })
+
+  it('returns 中立 for ivRank between 26 and 74', () => {
+    expect(getIvRankLabel(26)).toBe('中立')
+    expect(getIvRankLabel(50)).toBe('中立')
+    expect(getIvRankLabel(74)).toBe('中立')
+  })
+
+  it('returns 割高注意 for ivRank >= 75', () => {
+    expect(getIvRankLabel(75)).toBe('割高注意')
+    expect(getIvRankLabel(100)).toBe('割高注意')
+  })
+})
+
+describe('getIvRankColor', () => {
+  it('returns green for ivRank <= 25', () => {
+    expect(getIvRankColor(0)).toBe('bg-emerald-500')
+    expect(getIvRankColor(25)).toBe('bg-emerald-500')
+  })
+
+  it('returns grey for ivRank between 26 and 74', () => {
+    expect(getIvRankColor(50)).toBe('bg-slate-500')
+  })
+
+  it('returns red for ivRank >= 75', () => {
+    expect(getIvRankColor(75)).toBe('bg-red-500')
+    expect(getIvRankColor(100)).toBe('bg-red-500')
   })
 })
 

@@ -66,9 +66,9 @@ export function calculateIvPercentile(
 
 /**
  * IVランクに基づく色を返す
- * - 0-25: 緑（買い好機） - IVが低い = オプション買いに有利
+ * - 0-25: 緑（買い好機） - IVが低い = プレミアムが割安
  * - 25-75: 黄（中立）
- * - 75-100: 赤（売り好機） - IVが高い = オプション売りに有利
+ * - 75-100: 赤（割高注意） - IVが高い = プレミアムが割高
  *
  * @param ivRank IVランク (0-100)
  * @returns Tailwind CSSカラークラス名
@@ -94,7 +94,7 @@ export function getIvRankLabel(ivRank: number): string {
     return '買い好機'
   }
   if (ivRank >= 75) {
-    return '売り好機'
+    return '割高注意'
   }
   return '中立'
 }

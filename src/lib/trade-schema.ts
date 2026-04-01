@@ -116,8 +116,8 @@ export const tradeSchema = z.object({
   is_mini: z.boolean(),
   playbook_id: z.string().nullable(),
   playbook_compliance: z.boolean().nullable(),
-  confidence_level: z.number().nullable(),
-  emotion: z.string().nullable(),
+  confidence_level: z.number().nullish().transform((v) => v ?? null),
+  emotion: z.string().nullish().transform((v) => v ?? null),
 });
 
 export type Trade = z.infer<typeof tradeSchema>;

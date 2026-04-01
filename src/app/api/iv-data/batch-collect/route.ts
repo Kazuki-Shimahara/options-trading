@@ -122,7 +122,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       if (ivRank <= 25) {
         signal = 'BUY' // IV低水準 → 買い好機
       } else if (ivRank >= 75) {
-        signal = 'SELL' // IV高水準 → 売り好機
+        signal = 'CAUTION' // IV高水準 → 割高注意
       } else {
         signal = 'NEUTRAL'
       }
